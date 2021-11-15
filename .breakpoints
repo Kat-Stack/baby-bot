@@ -1,0 +1,42 @@
+{
+  "files": {
+    "interactions.txt": [
+      {
+        "id": "1356ea09-9d8a-4272-8b81-81da0d5185ce",
+        "line": 198,
+        "version": 0,
+        "index": 10321
+      }
+    ],
+    "main.py": [
+      {
+        "id": "51653f2e-80d9-4f93-a4c6-b9dba055960d",
+        "line": 19,
+        "version": 2615,
+        "index": 429
+      }
+    ],
+    "nodes.py": [
+      {
+        "id": "98c9ded3-0528-466d-ba9c-3243297d36f7",
+        "line": 38,
+        "version": 415,
+        "index": 883
+      }
+    ],
+    "textManager.py": [
+      {
+        "id": "2f5c75bc-e070-47ab-a209-6915bb63c065",
+        "line": 23,
+        "version": 3825,
+        "index": 433
+      },
+      {
+        "id": "fb9abae1-612b-40e2-8f57-de97a13926ab",
+        "line": 61,
+        "version": 3825,
+        "index": 1981
+      }
+    ]
+  }
+}
