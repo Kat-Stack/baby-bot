@@ -20,6 +20,7 @@ class LinkedList:
       current.next = newNode
     else:
       self.head = newNode
+
   
   # print method for the linked list
   def printLL(self):
@@ -36,6 +37,17 @@ class LinkedList:
       response += current.data + " "
       current = current.next
     return response
+
+    #travels up the linkedNode and returns a sequence of linkedNodes (ex: I am K -> I, I am, I am K)
+  def printBackwards(self, collection=[]):
+    current = self.head
+    collection.append(self)
+    while(current):
+      current = current.next
+    return collection
+
+
+
 
 # Singly Linked List with insertion and print methods
 #LL = LinkedList()

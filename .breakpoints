@@ -18,24 +18,42 @@
     ],
     "nodes.py": [
       {
-        "id": "98c9ded3-0528-466d-ba9c-3243297d36f7",
-        "line": 38,
-        "version": 415,
-        "index": 883
+        "id": "93694337-5247-414d-8c9b-a545d2241ee8",
+        "line": 44,
+        "version": 0,
+        "index": 1073
       }
     ],
     "textManager.py": [
       {
-        "id": "2f5c75bc-e070-47ab-a209-6915bb63c065",
-        "line": 23,
-        "version": 3825,
-        "index": 433
+        "id": "8e91c8d8-a8ad-4004-a180-012e25795b7d",
+        "line": 21,
+        "version": 7388,
+        "index": 407
       },
       {
-        "id": "fb9abae1-612b-40e2-8f57-de97a13926ab",
-        "line": 61,
-        "version": 3825,
-        "index": 1981
+        "id": "3b0bd7f1-4968-4c4e-bbdd-fde46350f6e9",
+        "line": 103,
+        "version": 5988,
+        "index": 3186
+      },
+      {
+        "id": "56d01588-2eab-4407-a062-ac8358163b28",
+        "line": 162,
+        "version": 5988,
+        "index": 5387
+      },
+      {
+        "id": "23626121-cc04-45cb-8660-38ea26536e6f",
+        "line": 171,
+        "version": 5988,
+        "index": 5751
+      },
+      {
+        "id": "a87d5446-41b4-4669-b5fc-cf9be550d72c",
+        "line": 173,
+        "version": 5988,
+        "index": 5849
       }
     ]
   }

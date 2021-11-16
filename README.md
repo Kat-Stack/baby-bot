@@ -1,7 +1,3 @@
 # Python
 
-This is the Template Repl for Python.
-
-Python is a dynamic language emphasizing readability.
-
-[Check out the official docs here](https://www.python.org/).
+This is a language bot that uses linkedNodes and dictonaries to process language. Shannon entropy will be implemented eventually.

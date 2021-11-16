@@ -1,3 +1,4 @@
+import os
 import praw
 import re
 import time
@@ -5,11 +6,12 @@ import file_editor as fe
 import sorter
 
 
+
 sortBy = ['hot', 'new', 'controversial', 'top', 'gilded']
 
+client_secret = os.environ['client_secret']
+client_id = os.environ['client_id']
 
-client_id = 'vika0p5YMk-VUg'
-client_secret = 'S0MVD73hgvBq7bnvVAHwHzacmfq61Q'
 user_agent = 'TopicScraper'
 username = 'retest_bot'
 password = 'This is my password'
