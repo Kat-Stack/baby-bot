@@ -1,8 +1,9 @@
 import random
 import nodesr as n
 import re
+from discord.ext import commands
 
-corpusBodySource = "corpusBodySource"
+corpusBodySourceFile = "corpusBodySource"
 CORPUSBODY = []
 # ("empty", "interactions.txt", "voaEnglish", "avatar", "got", "redditCorpus") ("empty", "sample")
 
@@ -13,23 +14,25 @@ ngram = {}
 corpusDict = {}
 wordLinkedListDict = {}
 db = {}
+ngram2 = {}
 
 
 def getCorpus():
     return corpus
 
 
-def populateCorpus(corpusBody=CORPUSBODY):
-    global corpus
+def populateCorpus(corpusBodySource):
     global ngram
     global CORPUSBODY
-    corpusBody = CORPUSBODY
-    with open(corpusBodySource) as file:
+    global ngram2
+    corpusBody = []
+    corpus = ""
+    with open(str(corpusBodySource)) as file:
         for item in file.readlines():
             corpusBody.append(item.strip("\n"))
     for item in corpusBody:
         corpusList = []
-        with open("newCorpus/" + item, encoding="utf-8") as file:
+        with open(item, encoding="utf-8") as file:
             try:
                 corpusList += file.readlines()
             except UnicodeDecodeError:
@@ -47,8 +50,13 @@ def populateCorpus(corpusBody=CORPUSBODY):
             ngram[word_pair].append(sentence.split(' ')[i])
 
 
-def getResponse(message, interactionsFile="newCorpus/interactions.txt"):
+
+
+
+def getResponse(messageTOTAL, interactionsFile="newCorpus/interactions.txt"):
     global ngram
+    message = messageTOTAL.content
+    author = messageTOTAL.author
     try:
         tempDict = grabATempDict(message)
     except UnicodeDecodeError:
@@ -68,11 +76,14 @@ def getResponse(message, interactionsFile="newCorpus/interactions.txt"):
         out += third + ' '
         word_pair = (word_pair[1], third)
 
-    write = "INITIAL MESSAGE: " + message + "MY RESPONSE: " + out + "\n"
+    write = "Q: " + message + "A: " + out + "\n"
+    userFile = open("peopleiknow/"+str(author)+".txt", "a", encoding="utf-8")
     f = open(interactionsFile, "a", encoding="utf-8")
     processMessage(message)
+    userFile.write(write)
     f.write(write)
     processMessage(out)
+    userFile.close()
     f.close()
     return out
 
@@ -100,6 +111,14 @@ def processMessage(sentence):
         ngram[word_pair].append(sentence.split(' ')[i])
 
 
+def addWords(dictionar, word_pair, stringValue):
+    dictionar[word_pair][0] += 1
+    tempDict = dictionar[word_pair][1] #this is just for readability. we don't use this, we hard code it in
+    if stringValue not in dictionar[word_pair][1]:
+        dictionar[word_pair][1][stringValue] = 0
+    dictionar[word_pair][1][stringValue] += 1
+
+
 # pass in a sentence, saves to DB as sequences
 def sendToDB(sentence):
     wordList = sentence.split(" ")
@@ -112,120 +131,16 @@ def sendToDB(sentence):
             db[wordList[i - 1]] = thisList
 
 
-# taking out for a bit
-def populaterCorpus(corpusBody=CORPUSBODY):
-    global corpus
-    global ngram
-    for item in corpusBody:
-        corpusDict = {}
-        corpusList = []
-        with open("newCorpus/" + item, encoding="utf-8") as file:
-            corpusList += file.readlines()
-        for items in corpusList:
-            if items not in corpusDict:
-                corpusDict[items.replace('"', ' ').replace('\n', ' ').replace('[', ' ').replace(']', ' ')] = []
-        for sentence in corpusDict.keys():
-            linkedNodeList = n.LinkedList()
-            splitSentence = sentence.split(" ")
-            for i in range(1, len(splitSentence) + 1):
-                node = n.Node(splitSentence[i - 1])
-                linkedNodeList.insert(node)
-                if wordLinkedListDict.get(splitSentence[i - 1]):
-                    wordLinkedListDict[splitSentence[i - 1]].append(linkedNodeList)
-                else:
-                    thisIsaList = []
-                    linkedNodeListSequence = linkedNodeList.printBackwards(thisIsaList)
-                    tempList = []
-                    for item in linkedNodeListSequence:
-                        item.printLL()
-                        tempList.append(item)
-                    wordLinkedListDict[splitSentence[i - 1]] = tempList
 
-
-#              if '' in node.data:
-#                  continue
-#           if (linkedNodeList) not in ngram:
-#              ngram[linkedNodeList] = []
-#               thisIsaList = []
-#                linkedNodeListSequence = linkedNodeList.printBackwards(thisIsaList)
-#                 for item in linkedNodeListSequence:
-#                    ngram[item].append(splitSentence[i-1])
-
-# taking out for a bit
-def getrResponse(message):
-    out = ""
-    outMinusIDK = ""
-    # processedMessage is a list of the message that was sent in a discord chat.
-    processedMessage = processMessage(message)
-    if int(len(processedMessage)) > 1:
-        # thisManyLengths = how many responses babyBot should gives
-        thisManyLengths = int(len(processedMessage) / 2)
+def corpusInit(corpusBody=corpusBodySourceFile):
+    if type(corpusBody) == str:
+        populateCorpus(corpusBody)
+    elif type(corpusBody) == tuple:
+        populateCorpus(corpusBody[0])
     else:
-        thisManyLengths = 1
-    for i in range(thisManyLengths):
-        linkedListWord = random.choice(processedMessage)
-        if wordLinkedListDict.get(linkedListWord):
-            # this shouldn't be random eventually. Eventually we want the bot to decide which context is best using tags
-            outMinusIDK += random.choice(wordLinkedListDict[linkedListWord]).getLL()
-            out += random.choice(wordLinkedListDict[linkedListWord]).getLL() + "??????"
-        else:
-            # with the changes I have made in the morning of 11.15 this will no longer be hit. ProcessMessage now saves the response to ngram list so this logic will never hit false
-            out += " I do not know what {} means ".format(linkedListWord)
+        for item in corpusBody:
+            if type(item) == tuple:
+                populateCorpus(item[0])
+            else:
+                populateCorpus(item)
 
-            # while True:
-            #   if linkedList not in ngram.keys():
-            #      break
-            # third = random.choice(list(ngram[linkedList]))
-            # if ngram.get(third):
-            # out += ngram.get(third).getLL() + ' '
-
-    #        word_pair = (third[1], third)
-
-    f = open("newCorpus/interactions.txt", "a")
-    f.write(message + " " + "\n" + out + "\n")
-    f.close()
-
-    return out
-
-
-def corpusInit(corpusBody=CORPUSBODY):
-    populateCorpus(corpusBody)
-
-
-def processrMessage(message):
-    messageList = list()
-    messageList = message.split(" ")
-    splitSentence = message.split(' ')
-    for i in range(1, len(splitSentence) + 1):
-        linkedNodeList = n.LinkedList()
-        node = n.Node(splitSentence[i - 1])
-        linkedNodeList.insert(node)
-        if wordLinkedListDict.get(splitSentence[i - 1]):
-            wordLinkedListDict[splitSentence[i - 1]].append(linkedNodeList)
-        else:
-            thisIsaList = []
-            linkedNodeListSequence = linkedNodeList.printBackwards(thisIsaList)
-            tempList = []
-            for item in linkedNodeListSequence:
-                additionalTempList = []
-                additionalTempList.append(item)
-                print(item.getLL())
-                tempList.append(item)
-                if wordLinkedListDict.get(splitSentence[i - 1]):
-                    wordLinkedListDict[splitSentence[i - 1]] = wordLinkedListDict.get(splitSentence[i - 1]).append(item)
-                else:
-                    wordLinkedListDict[splitSentence[i - 1]] = tempList
-                    wordLinkedListDict[splitSentence[i - 1]] = additionalTempList
-    #      tempList = list()
-    #       tempList.append(linkedNodeList)
-    #     wordLinkedListDict[splitSentence[i - 1]] = tempList
-
-    #              if '' in node.data:
-    #                  continue
-    #   if (linkedNodeList) not in ngram:
-    #      ngram[linkedNodeList] = []
-    #       thisIsaList = []
-    #        linkedNodeListSequence = linkedNodeList.printBackwards(thisIsaList)
-    #         for item in linkedNodeListSequence:
-    #            ngram[item].append(splitSentence[i-1])
-    return messageList

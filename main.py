@@ -4,9 +4,9 @@ import textManager as tm
 flag = True
 
 
+
 my_secret = os.environ['TOKEN']
 bot = commands.Bot(command_prefix='`')
-initFlag = False
 talkOrListen = {}
 autogenInt = 1
 autogenCounter = 1
@@ -27,6 +27,19 @@ async def autogen(ctx, autogenAmount):
     autogen = autogenAmount
     autogenCounter = 1
     await ctx.channel.send("I will now message every {} messages. AutoGeneration Counter is {}".format(autogenAmount,autogenCounter))
+
+
+@bot.command()
+async def loadUsers(ctx):
+    newCorpusLoader = "activeUse/tempThinking"
+    newFile = open(newCorpusLoader, "w", encoding="utf-8")
+    for file in os.listdir("peopleiknow"):
+        newFile.write("peopleiknow/" + file + "\n")
+    newFile.close()
+    await init(ctx, newCorpusLoader)
+
+
+
 
 
 @bot.command()
@@ -67,32 +80,46 @@ async def talkAll(ctx):
 
 
 @bot.command()
-async def talk(ctx):
-    if ctx.channel not in talkOrListen:
-        talkOrListen[ctx.channel] = True
-        await ctx.channel.send("I am feeling chatty")
-    else:
-        if talkOrListen[ctx.channel]:
-            talkOrListen[ctx.channel] = False
-            await ctx.channel.send("I am listening here")
+async def talk(ctx, channelName=None):
+    if channelName is not None:
+        guild = ctx.channel.guild
+        channelIsSet = ctx.channel
+        allChannels = {}
+        for channel in guild.channels:
+            if channel.name == channelName:
+                channelIsSet = channel
+        if channelName not in str(guild.channels):
+            await ctx.channel.send("I can't send it there it doesn't exist")
         else:
+            if talkOrListen.keys().__contains__(channelName):
+                talkOrListen[channelName] = False
+                await ctx.channel.send("Nah goodnight.")
+            else:
+                talkOrListen[channelName] = True
+                await channelIsSet.send("I'm up I'm up")
+                await ctx.channel.send("I'm up here too dw")
+    else:
+        if ctx.channel not in talkOrListen:
             talkOrListen[ctx.channel] = True
-            await ctx.channel.send("I'm gonna talk mmkay?")
+            await ctx.channel.send("I am feeling chatty")
+        else:
+            if talkOrListen[ctx.channel]:
+                talkOrListen[ctx.channel] = False
+                await ctx.channel.send("I am listening here")
+            else:
+                talkOrListen[ctx.channel] = True
+                await ctx.channel.send("I'm gonna talk mmkay?")
+        return
 
 
 
 @bot.command()
 async def init(ctx, *corpi):
-    global initFlag
-    if not initFlag:
-        if len(corpi) == 0:
-            tm.corpusInit()
-        else:
-            tm.corpusInit(corpi)
-        await ctx.send("I have initialized the corpus with {} arguments".format(corpi))
-        global flag
-        flag = False
-        initFlag = True
+    if len(corpi) == 0:
+        tm.corpusInit()
+    else:
+        tm.corpusInit(corpi)
+    await ctx.send("I have added those files to the corpus".format(corpi))
 
 
 @bot.event
@@ -107,15 +134,11 @@ async def on_message(message):
                 if int(autogenCounter) % int(autogenInt) == 0:
                     if message.author == bot.user:
                         if message.channel.name == 'gaulle':
-                            await message.reply(tm.getResponse(message.content))
+                            await message.reply(tm.getResponse(message, "newCorpus/trainOfThought.txt"))
                             return
                         else:
                             return
-                    if not initFlag:
-                        await message.reply("Please `init me to begin.")
-                    else:
-                        response = message.content
-                        await message.reply(tm.getResponse(response))
+                    await message.reply(tm.getResponse(message))
                 autogenCounter += 1
         except:
             tm.processMessage(message.content)
