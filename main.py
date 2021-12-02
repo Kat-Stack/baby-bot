@@ -1,5 +1,6 @@
 from discord.ext import commands
 import os
+import discord
 import textManager as tm
 flag = True
 
@@ -12,6 +13,11 @@ autogenInt = 1
 autogenCounter = 1
 
 
+
+
+@bot.command()
+async def save(ctx):
+    pass
 
 
 @bot.event
@@ -116,10 +122,10 @@ async def talk(ctx, channelName=None):
 @bot.command()
 async def init(ctx, *corpi):
     if len(corpi) == 0:
-        tm.corpusInit()
+        tm.corpusInit(readFlag=False)
     else:
-        tm.corpusInit(corpi)
-    await ctx.send("I have added those files to the corpus".format(corpi))
+        tm.corpusInit(corpi, False)
+    await ctx.send("I have added those files to the corpus")
 
 
 @bot.event

@@ -2,6 +2,7 @@ import random
 import nodesr as n
 import re
 from discord.ext import commands
+import entropy
 
 corpusBodySourceFile = "corpusBodySource"
 CORPUSBODY = []
@@ -10,89 +11,84 @@ CORPUSBODY = []
 corpus = """"""
 wordTagDict = {}
 tagCorpusDict = {}
-ngram = {}
+#text then number is text, number then text is serializedDict
+ngram1 = "pickles/oneNgram"
+ngram2 = "pickles/twoNgram"
+ngram3 = "pickles/twoNgram"
+ngram4 = "pickles/twoNgram"
+ngram5 = "pickles/twoNgram"
 corpusDict = {}
 wordLinkedListDict = {}
 db = {}
-ngram2 = {}
+alreadyReadCorpi = []
+alreadyReadCorpiLocation = "activeUse/alreadyRead"
+alreadyReadFLAG = True
 
 
 def getCorpus():
     return corpus
 
 
-def populateCorpus(corpusBodySource):
-    global ngram
-    global CORPUSBODY
+def populateCorpus(corpusBodySource, readFlag=True):
+    global ngram1
     global ngram2
+    global ngram3
+    global ngram4
+    global ngram5
+    global CORPUSBODY
+
+    global alreadyReadCorpiLocation
+    global alreadyReadCorpi
+    alreadyReadCorpi = []
     corpusBody = []
     corpus = ""
-    with open(str(corpusBodySource)) as file:
+    if not readFlag:
+        ngram1, ngram2, ngram3, ngram4, ngram5 = entropy.readNgramsData(ngram1, ngram2, ngram3, ngram4, ngram5)
+    with open(alreadyReadCorpiLocation, encoding="utf-8") as f:
+        for item in f:
+            alreadyReadCorpi.append(item.strip("\n"))
+    with open(str(corpusBodySource), encoding="utf-8") as file:
         for item in file.readlines():
-            corpusBody.append(item.strip("\n"))
-    for item in corpusBody:
-        corpusList = []
-        with open(item, encoding="utf-8") as file:
-            try:
-                corpusList += file.readlines()
-            except UnicodeDecodeError:
+            if alreadyReadCorpi.__contains__(item.strip("\n")):
                 pass
-        for items in corpusList:
-            corpus += items
+            else:
+                corpusBody.append(item.strip("\n"))
+    for item in corpusBody:
+        if alreadyReadCorpi.__contains__(item):
+            pass
+        else:
+            corpusList = []
+            with open(item, encoding="utf-8") as file:
+                corpusList += file.readlines()
+            for items in corpusList:
+                corpus += items
+            alreadyReadCorpi.append(item.strip("\n"))
+    with open(alreadyReadCorpiLocation, "w", encoding="utf-8") as f:
+        for item in alreadyReadCorpi:
+            f.write(item.strip("\n") + "\n")
     corpus = corpus.replace('\n', '.')
     for sentence in re.split('[!.?,\t\n]', corpus):
-        for i in range(1, len(sentence.split(' '))):
-            word_pair = (sentence.split(' ')[i - 2], sentence.split(' ')[i - 1])
-            if '' in word_pair:
-                continue
-            if word_pair not in ngram:
-                ngram[word_pair] = []
-            ngram[word_pair].append(sentence.split(' ')[i])
-
-
-
+        entropy.ngramManager(sentence, ngram1, ngram2, ngram3, ngram4, ngram5)
 
 
 def getResponse(messageTOTAL, interactionsFile="newCorpus/interactions.txt"):
-    global ngram
+    if not alreadyReadFLAG:
+        populateCorpus([interactionsFile, ], False)
     message = messageTOTAL.content
     author = messageTOTAL.author
-    try:
-        tempDict = grabATempDict(message)
-    except UnicodeDecodeError:
-        tempDict = ngram
-    if bool(tempDict):
-        word_pair = random.choice(list(tempDict.keys()))
-    else:
-        word_pair = random.choice(list(ngram.keys()))
-    out = word_pair[0] + ' ' + word_pair[1] + ' '
 
-    while True:
-        if word_pair not in ngram.keys() or word_pair[1] == ngram[word_pair] or word_pair[0] == ngram[word_pair]:
-            break
-        if len(out) > 1000:
-            break
-        third = random.choice(list(ngram[word_pair]))
-        out += third + ' '
-        word_pair = (word_pair[1], third)
-
-    write = "Q: " + message + "A: " + out + "\n"
-    userFile = open("peopleiknow/"+str(author)+".txt", "a", encoding="utf-8")
-    f = open(interactionsFile, "a", encoding="utf-8")
+    out = entropy.getResponse(ngram2, message)
     processMessage(message)
-    userFile.write(write)
-    f.write(write)
     processMessage(out)
-    userFile.close()
-    f.close()
     return out
+
 
 def grabATempDict(message):
     tempDict = {}
     if len(message.split(' ')) > 1:
 
         for i in range(1, len(message.split(' '))):
-            word_pair = (message.split(' ')[i - 2], message.split(' ')[i-1])
+            word_pair = (message.split(' ')[i - 2], message.split(' ')[i - 1])
             if '' in word_pair:
                 continue
             elif (word_pair) not in tempDict:
@@ -100,20 +96,21 @@ def grabATempDict(message):
             tempDict[word_pair].append(message.split(' ')[i])
         return tempDict
 
+
 def processMessage(sentence):
-    global ngram
+    global ngram1
     for i in range(1, len(sentence.split(' '))):
-        word_pair = (sentence.split(' ')[i - 2], sentence.split(' ')[i-1])
+        word_pair = (sentence.split(' ')[i - 2], sentence.split(' ')[i - 1])
         if '' in word_pair:
             continue
-        if word_pair not in ngram:
-            ngram[word_pair] = []
-        ngram[word_pair].append(sentence.split(' ')[i])
+        if word_pair not in ngram1:
+            ngram1[word_pair] = []
+        ngram1[word_pair].append(sentence.split(' ')[i])
 
 
 def addWords(dictionar, word_pair, stringValue):
     dictionar[word_pair][0] += 1
-    tempDict = dictionar[word_pair][1] #this is just for readability. we don't use this, we hard code it in
+    tempDict = dictionar[word_pair][1]  # this is just for readability. we don't use this, we hard code it in
     if stringValue not in dictionar[word_pair][1]:
         dictionar[word_pair][1][stringValue] = 0
     dictionar[word_pair][1][stringValue] += 1
@@ -131,16 +128,14 @@ def sendToDB(sentence):
             db[wordList[i - 1]] = thisList
 
 
-
-def corpusInit(corpusBody=corpusBodySourceFile):
+def corpusInit(corpusBody=corpusBodySourceFile, readFlag=True):
     if type(corpusBody) == str:
-        populateCorpus(corpusBody)
+        populateCorpus(corpusBody, readFlag)
     elif type(corpusBody) == tuple:
-        populateCorpus(corpusBody[0])
+        populateCorpus(corpusBody[0], readFlag)
     else:
         for item in corpusBody:
             if type(item) == tuple:
-                populateCorpus(item[0])
+                populateCorpus(item[0], readFlag)
             else:
-                populateCorpus(item)
-
+                populateCorpus(item, readFlag)
