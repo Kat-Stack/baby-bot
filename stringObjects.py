@@ -4,12 +4,13 @@ class customObject(object):
     myStr = ""
 
     def __init__(self, val, totalWords):
-        self.totalCount += 1
         self.myStr = val
         self.calculate(totalWords)
 
     def calculate(self, totalWords):
+        self.count()
         self.totalValue = self.totalCount/totalWords
+        return self.totalValue
 
     def count(self):
         self.totalCount += 1
