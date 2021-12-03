@@ -40,3 +40,22 @@ class wordObject(customObject):
 
     def getStr(self):
         return self.myStr
+
+
+class multiWordObject(customObject):
+
+    def __init__(self, listOfWords, totalWords):
+        self.wordIndexDict  = {}
+        string = ""
+        for item in range(0, len(listOfWords)-1):
+            self.wordIndexDict[item] = listOfWords[item]
+            string += str(listOfWords[item]) + " "
+        super().__init__(string, totalWords)
+
+    def calculate(self, totalWords):
+        self.count()
+        self.totalValue = self.totalCount / totalWords
+        multiplied = 1
+        for item in self.wordIndexDict:
+            multiplied *= self.wordIndexDict[item].calculate()
+        return multiplied * self.totalValue
