@@ -44,34 +44,37 @@ def ngramManager(sentence, ngram1, ngram2, ngram3, ngram4, ngram5):
     for i in range(0, len(splitSentence)-limit):
         okNgrams = []
         if len(splitSentence) - limit - i > 0:
-            if splitSentence[0] not in ngram1:
-                ngram1[splitSentence[0]] = [0, {}]
+            if splitSentence[i] not in ngram1:
+                ngram1[splitSentence[i]] = [0, {}]
             okNgrams.append(ngram1)
         if len(splitSentence) - limit - i > 1:
-            if splitSentence[0] not in ngram2:
+            if splitSentence[i] not in ngram2:
                 tempDict = {
-                    splitSentence[0]: splitSentence[1]
+                    splitSentence[i]:
+                        {
+                            ngram1[splitSentence[i]]: splitSentence[i+1]
+                        }
                 }
                 ngram2[tempDict] = [0, {}]
             okNgrams.append(ngram2)
-        if  len(splitSentence) - limit - i > 2:
-            if splitSentence[0] not in ngram3:
+        if len(splitSentence) - limit - i > 2:
+            if splitSentence[i] not in ngram3:
                 tempDict = {
-                    splitSentence[0]: splitSentence[1], splitSentence[1]: splitSentence[2]
+                      ngram2[splitSentence[i]]: splitSentence[i+2]
                 }
                 ngram3[tempDict] = [0, {}]
             okNgrams.append(ngram3)
         if len(splitSentence) - limit - i > 3:
             if splitSentence[0] not in ngram4:
                 tempDict = {
-                    splitSentence[0]: splitSentence[1], splitSentence[1]: splitSentence[2], splitSentence[2]: splitSentence[3]
+                    ngram3[splitSentence[0]]: splitSentence[3]
                 }
                 ngram4[tempDict] = [0, {}]
             okNgrams.append(ngram4)
         if len(splitSentence) - limit - i > 4:
             if splitSentence[0] not in ngram5:
                 tempDict = {
-                    splitSentence[0]: splitSentence[1], splitSentence[1] : splitSentence[2], splitSentence[2]: splitSentence[3], splitSentence[3] : splitSentence[4]
+                    ngram4[splitSentence[0]]: splitSentence[4]
                 }
                 ngram5[tempDict] = [0, {}]
             okNgrams.append(ngram5)
@@ -90,27 +93,27 @@ def ngramManager(sentence, ngram1, ngram2, ngram3, ngram4, ngram5):
                 #[splitSentence[2], splitSentence[3]] next two words
                 #ngram2[[splitSentence[0], splitSentence[1]]][1] dictionary for next ngram (key = ^, counter added to + created if not existing)
                 #ngram2[splitSentence[0]][1][splitSentence[2], splitSentence[3]] adds next two words to dict
-                ngram2[[splitSentence[0]]][0] += 1
+                ngram2[ngram1[splitSentence[0]]] += 1
                 if splitSentence[0] not in ngram2:
-                    if splitSentence[2] not in ngram2[splitSentence[0]]:
+                    if ngram1[splitSentence[0]] not in ngram2:
                         ngram2[splitSentence[0]][1][splitSentence[2]] = 0
                     ngram2[splitSentence[0]][1][splitSentence[2]] += 1
 
             if item == ngram3:
-                ngram3[[splitSentence[0], splitSentence[1]], splitSentence[2]][0] += 1
-                if splitSentence[3] not in ngram3[splitSentence[0]]:
+                ngram3[ngram2[splitSentence[0]]] += 1
+                if ngram2[splitSentence[0]] not in ngram3:
                     ngram3[splitSentence[0]][1][splitSentence[3]] = 0
                 ngram3[splitSentence[0]][1][splitSentence[3]] += 1
 
             if item == ngram4:
-                ngram4[[splitSentence[0], splitSentence[1]], splitSentence[2], splitSentence[3]][0] += 1
-                if splitSentence[4] not in ngram3[splitSentence[0]]:
+                ngram4[ngram2[splitSentence[0]]] += 1
+                if ngram3[splitSentence[0]] not in ngram4:
                     ngram4[splitSentence[0]][1][splitSentence[4]] = 0
                 ngram4[splitSentence[0]][1][splitSentence[4]] += 1
 
             if item == ngram5:
-                ngram5[[splitSentence[0], splitSentence[1]], splitSentence[2], splitSentence[3], splitSentence[4]][0] += 1
-                if splitSentence[5] not in ngram3[splitSentence[0]]:
+                ngram5[ngram4[splitSentence[0]]] += 1
+                if ngram4[splitSentence[0]] not in ngram5:
                     ngram5[splitSentence[0]][1][splitSentence[5]] = 0
                 ngram5[splitSentence[0]][1][splitSentence[5]] += 1
 
@@ -143,18 +146,3 @@ def calculateProbabilities(wordPairDictionary, word):
             lowestProbabilityItem = items
         probabilityDict[items] = probability
     return probabilityDict, highestProbabilityItem, lowestProbabilityItem
-
-
-#given a message and an ngrams dictionary, what is your response?
-def getResponse(message, dictionar):
-    word_pair = ngramManager(message, dictionar)
-    out = word_pair[0] + ' ' + word_pair[1] + ' '
-    while True:
-        if word_pair not in dictionar.keys() or word_pair[1] == dictionar[word_pair] or word_pair[0] == dictionar[word_pair]:
-            break
-        if len(out) > 1000:
-            break
-        fullDict, highestItem, lowestItem = calculateProbabilities(dictionar, word_pair[1])
-        third = dictionar[word_pair][1][lowestItem] # lowest = most confident
-        out += third + ' '
-        word_pair = (word_pair[1], third)

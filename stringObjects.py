@@ -3,7 +3,7 @@ class customObject(object):
     totalValue = 0
     myStr = ""
 
-    def __init__(self, val):
+    def __init__(self, val, totalCount):
         self.totalCount += 1
         self.myStr = val
 

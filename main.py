@@ -2,6 +2,7 @@ from discord.ext import commands
 import os
 import discord
 import textManager as tm
+import traceback
 flag = True
 
 
@@ -146,8 +147,10 @@ async def on_message(message):
                             return
                     await message.reply(tm.getResponse(message))
                 autogenCounter += 1
-        except:
-            tm.processMessage(message.content)
+            raise KeyError
+        except Exception as e:
+            traceback.print_exc()
+            print("I didn't hit the mark :(")
         finally:
             pass
 

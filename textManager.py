@@ -12,17 +12,20 @@ corpus = """"""
 wordTagDict = {}
 tagCorpusDict = {}
 #text then number is text, number then text is serializedDict
-ngram1 = "pickles/oneNgram"
-ngram2 = "pickles/twoNgram"
-ngram3 = "pickles/twoNgram"
-ngram4 = "pickles/twoNgram"
-ngram5 = "pickles/twoNgram"
+ngram1file = "pickles/oneNgram"
+ngram2file = "pickles/twoNgram"
+ngram3file = "pickles/twoNgram"
+ngram4file = "pickles/twoNgram"
+ngram5file = "pickles/twoNgram"
 corpusDict = {}
 wordLinkedListDict = {}
 db = {}
 alreadyReadCorpi = []
 alreadyReadCorpiLocation = "activeUse/alreadyRead"
 alreadyReadFLAG = True
+bigBrain = []
+ngram1, ngram2, ngram3, ngram4, ngram5 = entropy.readNgramsData(ngram1file, ngram2file, ngram3file, ngram4file,
+                                                                    ngram5file)
 
 
 def getCorpus():
@@ -30,20 +33,33 @@ def getCorpus():
 
 
 def populateCorpus(corpusBodySource, readFlag=True):
-    global ngram1
-    global ngram2
-    global ngram3
-    global ngram4
-    global ngram5
+    global ngram1file
+    global ngram2file
+    global ngram3file
+    global ngram4file
+    global ngram5file
     global CORPUSBODY
-
     global alreadyReadCorpiLocation
     global alreadyReadCorpi
+    global bigBrain
+    global ngram5
+    global ngram4
+    global ngram3
+    global ngram2
+    global ngram1
+
     alreadyReadCorpi = []
     corpusBody = []
     corpus = ""
-    if not readFlag:
-        ngram1, ngram2, ngram3, ngram4, ngram5 = entropy.readNgramsData(ngram1, ngram2, ngram3, ngram4, ngram5)
+    if bigBrain == []:
+        fillBrain()
+    else:
+        ngram1 = bigBrain[0]
+        ngram2 = bigBrain[1]
+        ngram3 = bigBrain[2]
+        ngram4 = bigBrain[3]
+        ngram5 = bigBrain[4]
+
     with open(alreadyReadCorpiLocation, encoding="utf-8") as f:
         for item in f:
             alreadyReadCorpi.append(item.strip("\n"))
@@ -72,16 +88,36 @@ def populateCorpus(corpusBodySource, readFlag=True):
 
 
 def getResponse(messageTOTAL, interactionsFile="newCorpus/interactions.txt"):
-    if not alreadyReadFLAG:
-        populateCorpus([interactionsFile, ], False)
+    global ngram1
+    global ngram2
+    global ngram3
+    global ngram4
+    global ngram5
     message = messageTOTAL.content
     author = messageTOTAL.author
-
-    out = entropy.getResponse(ngram2, message)
-    processMessage(message)
-    processMessage(out)
+    if bigBrain == []:
+        fillBrain()
+    out = " I hit the mark ! "
+    entropy.ngramManager(message, ngram1, ngram2, ngram3, ngram4, ngram5)
+    entropy.ngramManager(out, ngram1, ngram2, ngram3, ngram4, ngram5)
     return out
 
+
+def fillBrain():
+    global ngram1file
+    global ngram2file
+    global ngram3file
+    global ngram4file
+    global ngram5file
+    global bigBrain
+    ngram1, ngram2, ngram3, ngram4, ngram5 = entropy.readNgramsData(ngram1file, ngram2file, ngram3file, ngram4file,
+                                                                    ngram5file)
+    bigBrain.append(ngram1)
+    bigBrain.append(ngram2)
+    bigBrain.append(ngram3)
+    bigBrain.append(ngram4)
+    bigBrain.append(ngram5)
+    return bigBrain
 
 def grabATempDict(message):
     tempDict = {}
@@ -96,16 +132,6 @@ def grabATempDict(message):
             tempDict[word_pair].append(message.split(' ')[i])
         return tempDict
 
-
-def processMessage(sentence):
-    global ngram1
-    for i in range(1, len(sentence.split(' '))):
-        word_pair = (sentence.split(' ')[i - 2], sentence.split(' ')[i - 1])
-        if '' in word_pair:
-            continue
-        if word_pair not in ngram1:
-            ngram1[word_pair] = []
-        ngram1[word_pair].append(sentence.split(' ')[i])
 
 
 def addWords(dictionar, word_pair, stringValue):
