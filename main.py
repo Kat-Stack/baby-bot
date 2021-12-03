@@ -3,6 +3,7 @@ import os
 import discord
 import textManager as tm
 import traceback
+import letsUseClasses
 flag = True
 
 
@@ -123,7 +124,7 @@ async def talk(ctx, channelName=None):
 @bot.command()
 async def init(ctx, *corpi):
     if len(corpi) == 0:
-        tm.corpusInit(readFlag=False)
+        letsUseClasses.addToCorpus("corpusBodySource")
     else:
         tm.corpusInit(corpi, False)
     await ctx.send("I have added those files to the corpus")
@@ -137,22 +138,23 @@ async def on_message(message):
         pass
     else:
         try:
-            if talkOrListen[message.channel]:
+            if message.channel in talkOrListen:
                 if int(autogenCounter) % int(autogenInt) == 0:
                     if message.author == bot.user:
                         if message.channel.name == 'gaulle':
-                            await message.reply(tm.getResponse(message, "newCorpus/trainOfThought.txt"))
+                            await message.reply(letsUseClasses.getResponse(message.content))
                             return
                         else:
                             return
-                    await message.reply(tm.getResponse(message))
+
+                    await message.reply(letsUseClasses.getResponse(message.content))
                 autogenCounter += 1
             raise KeyError
         except Exception as e:
             traceback.print_exc()
             print("I didn't hit the mark :(")
         finally:
-            pass
+            letsUseClasses.getResponse(message.content)
 
 
 

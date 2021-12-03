@@ -3,12 +3,13 @@ class customObject(object):
     totalValue = 0
     myStr = ""
 
-    def __init__(self, val, totalCount):
+    def __init__(self, val, totalWords):
         self.totalCount += 1
         self.myStr = val
+        self.calculate(totalWords)
 
-    def __add__(self, other):
-        self.totalValue += other
+    def calculate(self, totalWords):
+        self.totalValue = self.totalCount/totalWords
 
     def count(self):
         self.totalCount += 1
@@ -17,33 +18,24 @@ class customObject(object):
 class wordObject(customObject):
 
     def __init__(self, string, totalWords):
-        super().__init__(string)
-        self.update(totalWords)
+        super().__init__(string, totalWords)
+        self.nextWordDict = {}
+        self.prevWordDict = {}
 
     def update(self, totalWords):
         self.totalCount += 1
         self.totalValue = self.totalCount/totalWords
 
+    def addToNext(self, nextWord):
+        if nextWord not in self.nextWordDict:
+            self.nextWordDict[nextWord] = 0
+        self.nextWordDict[nextWord] += 1
 
-class charObject(customObject):
+    def addToPrev(self, prevWord):
+        if prevWord not in self.prevWordDict:
+            self.prevWordDict[prevWord] = 0
+        self.prevWordDict[prevWord] += 1
+        prevWord.addToNext(self)
 
-    def __init__(self, strVal, numVal = 1):
-        if len(strVal) == 1:
-            super().__init__(strVal)
-        self.count()
-        self.__add__(numVal)
-
-    def __add__(self, other):
-        super(charObject, self).__add__(other)
-
-
-class strObject(customObject):
-    contained_chars = {}
-
-    def __init__(self, string, charDict):
-        super().__init__(string)
-        for char in string:
-            if char not in charDict:
-                pass
-
-
+    def getStr(self):
+        return self.myStr
