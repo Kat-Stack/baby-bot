@@ -56,6 +56,6 @@ class multiWordObject(customObject):
         self.count()
         self.totalValue = self.totalCount / totalWords
         multiplied = 1
-        for item in self.wordIndexDict:
-            multiplied *= self.wordIndexDict[item].calculate()
+        for item in self.wordIndexDict.keys():
+            multiplied *= item.calculate()
         return multiplied * self.totalValue

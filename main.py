@@ -32,7 +32,7 @@ async def autogen(ctx, autogenAmount):
     global autogen
     global autogenCounter
     global autogenInt
-    autogen = autogenAmount
+    autogenInt = int(autogenAmount)
     autogenCounter = 1
     await ctx.channel.send("I will now message every {} messages. AutoGeneration Counter is {}".format(autogenAmount,autogenCounter))
 
@@ -89,6 +89,7 @@ async def talkAll(ctx):
 
 @bot.command()
 async def talk(ctx, channelName=None):
+    global talkOrListen
     if channelName is not None:
         guild = ctx.channel.guild
         channelIsSet = ctx.channel
@@ -138,23 +139,24 @@ async def on_message(message):
         pass
     else:
         try:
-            if message.channel in talkOrListen:
+            if message.channel not in talkOrListen:
+                talkOrListen[message.channel] = False
+            if talkOrListen[message.channel]:
                 if int(autogenCounter) % int(autogenInt) == 0:
                     if message.author == bot.user:
                         if message.channel.name == 'gaulle':
-                            await message.reply(letsUseClasses.getResponse(message.content))
+                            await message.reply(letsUseClasses.getResponse(message))
                             return
                         else:
                             return
 
-                    await message.reply(letsUseClasses.getResponse(message.content))
+                    await message.reply(letsUseClasses.getResponse(message))
                 autogenCounter += 1
-            raise KeyError
         except Exception as e:
             traceback.print_exc()
             print("I didn't hit the mark :(")
         finally:
-            letsUseClasses.getResponse(message.content)
+            pass
 
 
 
