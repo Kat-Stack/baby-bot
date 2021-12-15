@@ -41,8 +41,8 @@ async def autogen(ctx, autogenAmount):
 async def loadUsers(ctx):
     newCorpusLoader = "activeUse/tempThinking"
     newFile = open(newCorpusLoader, "w", encoding="utf-8")
-    for file in os.listdir("peopleiknow"):
-        newFile.write("peopleiknow/" + file + "\n")
+    for file in os.listdir("people"):
+        newFile.write("people/" + file + "\n")
     newFile.close()
     await init(ctx, newCorpusLoader)
 
@@ -126,8 +126,10 @@ async def talk(ctx, channelName=None):
 async def init(ctx, *corpi):
     if len(corpi) == 0:
         letsUseClasses.addToCorpus("corpusBodySource")
+        await loadUsers(ctx)
     else:
-        tm.corpusInit(corpi, False)
+        if len(corpi) == 1:
+            letsUseClasses.loadInteractions(corpi[0])
     await ctx.send("I have added those files to the corpus")
 
 

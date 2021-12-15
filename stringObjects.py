@@ -6,6 +6,8 @@ class customObject(object):
     def __init__(self, val, totalWords):
         self.myStr = val
         self.calculate(totalWords)
+        self.nextWordDict = {}
+        self.prevWordDict = {}
 
     def calculate(self, totalWords):
         self.count()
@@ -15,17 +17,6 @@ class customObject(object):
     def count(self):
         self.totalCount += 1
 
-
-class wordObject(customObject):
-
-    def __init__(self, string, totalWords):
-        super().__init__(string, totalWords)
-        self.nextWordDict = {}
-        self.prevWordDict = {}
-
-    def update(self, totalWords):
-        self.totalCount += 1
-        self.totalValue = self.totalCount/totalWords
 
     def addToNext(self, nextWord):
         if nextWord not in self.nextWordDict:
@@ -37,6 +28,17 @@ class wordObject(customObject):
             self.prevWordDict[prevWord] = 0
         self.prevWordDict[prevWord] += 1
         prevWord.addToNext(self)
+
+
+class wordObject(customObject):
+
+    def __init__(self, string, totalWords):
+        super().__init__(string, totalWords)
+
+
+    def update(self, totalWords):
+        self.totalCount += 1
+        self.totalValue = self.totalCount/totalWords
 
     def getStr(self):
         return self.myStr
@@ -57,5 +59,5 @@ class multiWordObject(customObject):
         self.totalValue = self.totalCount / totalWords
         multiplied = 1
         for item in self.wordIndexDict.keys():
-            multiplied *= item.calculate()
+            multiplied *= self.wordIndexDict[item].calculate(totalWords)
         return multiplied * self.totalValue
