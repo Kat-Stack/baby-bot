@@ -83,6 +83,10 @@ class multiWordObject(customObject):
         self.count()
         self.totalValue = self.totalCount / totalWords
         multiplied = 1
-        for item in self.wordIndexDict.keys():
-            multiplied *= self.wordIndexDict[item].calculate(totalWords)
+        if len(self.wordIndexDict.keys()) > 800:
+            multiplied = 1
+            print("almost broke via recursion on {}".format(self.getStr()))
+        else:
+            for item in self.wordIndexDict.keys():
+                multiplied *= self.wordIndexDict[item].calculate(totalWords)
         return multiplied
