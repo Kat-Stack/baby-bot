@@ -1,6 +1,5 @@
 from discord.ext import commands
 import os
-import discord
 import textManager as tm
 import traceback
 import letsUseClasses
