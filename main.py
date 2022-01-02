@@ -32,7 +32,7 @@ async def autogen(ctx, autogenAmount):
     global autogen
     global autogenCounter
     global autogenInt
-    autogenInt = int(autogenAmount)
+    autogen = autogenAmount
     autogenCounter = 1
     await ctx.channel.send("I will now message every {} messages. AutoGeneration Counter is {}".format(autogenAmount,autogenCounter))
 
@@ -41,8 +41,8 @@ async def autogen(ctx, autogenAmount):
 async def loadUsers(ctx):
     newCorpusLoader = "activeUse/tempThinking"
     newFile = open(newCorpusLoader, "w", encoding="utf-8")
-    for file in os.listdir("people"):
-        newFile.write("people/" + file + "\n")
+    for file in os.listdir("peopleiknow"):
+        newFile.write("peopleiknow/" + file + "\n")
     newFile.close()
     await init(ctx, newCorpusLoader)
 
@@ -89,7 +89,6 @@ async def talkAll(ctx):
 
 @bot.command()
 async def talk(ctx, channelName=None):
-    global talkOrListen
     if channelName is not None:
         guild = ctx.channel.guild
         channelIsSet = ctx.channel
@@ -126,10 +125,8 @@ async def talk(ctx, channelName=None):
 async def init(ctx, *corpi):
     if len(corpi) == 0:
         letsUseClasses.addToCorpus("corpusBodySource")
-        await loadUsers(ctx)
     else:
-        if len(corpi) == 1:
-            letsUseClasses.loadInteractions(corpi[0])
+        tm.corpusInit(corpi, False)
     await ctx.send("I have added those files to the corpus")
 
 
@@ -141,19 +138,18 @@ async def on_message(message):
         pass
     else:
         try:
-            if message.channel not in talkOrListen:
-                talkOrListen[message.channel] = False
-            if talkOrListen[message.channel]:
+            if message.channel in talkOrListen:
                 if int(autogenCounter) % int(autogenInt) == 0:
                     if message.author == bot.user:
                         if message.channel.name == 'gaulle':
-                            await message.reply(letsUseClasses.getResponse(message))
+                            await message.reply(letsUseClasses.getResponse(message.content))
                             return
                         else:
                             return
 
                     await message.reply(letsUseClasses.getResponse(message))
                 autogenCounter += 1
+            raise KeyError
         except Exception as e:
             traceback.print_exc()
             print("I didn't hit the mark :(")
