@@ -8,7 +8,7 @@ flag = True
 
 
 my_secret = os.environ['TOKEN']
-bot = commands.Bot(command_prefix='`')
+bot = commands.Bot(command_prefix='*')
 talkOrListen = {}
 autogenInt = 1
 autogenCounter = 1
@@ -138,17 +138,17 @@ async def on_message(message):
     else:
         try:
             if message.channel in talkOrListen:
-                if int(autogenCounter) % int(autogenInt) == 0:
-                    if message.author == bot.user:
-                        if message.channel.name == 'gaulle':
-                            await message.reply(letsUseClasses.getResponse(message.content))
-                            return
-                        else:
-                            return
+                if talkOrListen[message.channel]:
+                    if int(autogenCounter) % int(autogenInt) == 0:
+                        if message.author == bot.user:
+                            if message.channel.name == 'gaulle':
+                                await message.reply(letsUseClasses.getResponse(message.content))
+                                return
+                            else:
+                                return
 
-                    await message.reply(letsUseClasses.getResponse(message))
-                autogenCounter += 1
-            raise KeyError
+                        await message.reply(letsUseClasses.getResponse(message))
+                    autogenCounter += 1
         except Exception as e:
             traceback.print_exc()
             print("I didn't hit the mark :(")
