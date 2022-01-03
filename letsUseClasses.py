@@ -131,6 +131,7 @@ def crawlCorpusForNext(lastWord):
         if randNum > 70:
             nextWord = random.choice(list(lastWord.nextWordDict.keys()))
         else:
+            #use min to get the best result
             nextWord = min(lastWord.nextWordDict, key=lastWord.nextWordDict.get)
 
     return nextWord
