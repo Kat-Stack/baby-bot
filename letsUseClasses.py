@@ -122,6 +122,7 @@ def processMessage(message):
         listOfResponse.append(message)
     return listOfResponse
 
+#crawls corpus and grabs next best word / set of words
 def crawlCorpusForNext(lastWord):
     if len(lastWord.nextWordDict) == 0:
         nextWord = min(lastWord.prevWordDict, key=lastWord.prevWordDict.get)
