@@ -10,7 +10,7 @@ class customObject(object):
 
     def calculate(self, totalWords):
         self.count()
-        self.totalValue = self.totalCount/totalWords
+        self.totalValue = self.totalCount / totalWords
         return self.totalValue
 
     def count(self):
@@ -26,17 +26,16 @@ class wordObject(customObject):
 
     def update(self, totalWords):
         self.totalCount += 1
-        self.totalValue = self.totalCount/totalWords
+        self.totalValue = self.totalCount / totalWords
 
     def addToNext(self, nextWord):
         if nextWord not in self.nextWordDict:
             self.nextWordDict[nextWord] = 0
-        self.nextWordDict[nextWord] += 1
-
+        self.nextWordDict[nextWord] = nextWord.calculate(self.totalWords)
     def addToPrev(self, prevWord):
         if prevWord not in self.prevWordDict:
             self.prevWordDict[prevWord] = 0
-        self.prevWordDict[prevWord] += 1
+        self.prevWordDict[prevWord] += prevWord.calculate(self.totalWords)
         prevWord.addToNext(self)
 
     def getStr(self):
@@ -46,18 +45,35 @@ class wordObject(customObject):
 class multiWordObject(customObject):
 
     def __init__(self, listOfWords, totalWords):
-        self.wordIndexDict  = {}
+        self.nextWordDict = {}
+        self.prevWordDict = {}
+        self.wordIndexList = listOfWords
         self.totalWords = totalWords
+        self.totalValue = 1
         string = ""
-        for item in range(0, len(listOfWords)-1):
-            self.wordIndexDict[item] = listOfWords[item]
+        for item in range(0, len(listOfWords)):
             string += str(listOfWords[item].getStr()) + " "
+            self.totalValue *= listOfWords[item].calculate(totalWords)
         super().__init__(string, totalWords)
+
+    def addToNext(self, nextWord):
+        if nextWord not in self.nextWordDict:
+            self.nextWordDict[nextWord] = 0
+        self.nextWordDict[nextWord] = nextWord.calculate(self.totalWords)
+
+    def addToPrev(self, prevWord):
+        if prevWord not in self.prevWordDict:
+            self.prevWordDict[prevWord] = 0
+        self.prevWordDict[prevWord] += prevWord.calculate(self.totalWords)
+        prevWord.addToNext(self)
 
     def calculate(self, totalWords):
         self.count()
-        self.totalValue = self.totalCount / self.totalWords
         multiplied = 1
-        for item in self.wordIndexDict.keys():
-            multiplied *= self.wordIndexDict[item].calculate(totalWords)
+        self.totalValue = 1
+        for item in range(0, len(self.wordIndexList)):
+            self.totalValue *= self.wordIndexList[item].calculate(totalWords)
         return multiplied * self.totalValue
+
+    def getStr(self):
+        return self.myStr

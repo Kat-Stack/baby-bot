@@ -11,12 +11,13 @@ def getResponse(messageTOTAL):
     out = ""
     try:
         starter = random.choice(processMessage(message)) #calls processMessage to input to corpus. Recieves a list of every word and picks a random one to start responding with
-        lastWord = crawlCorpusForNext(totalWordTracker[1][starter])
+        nextWord = crawlCorpusForNext(totalWordTracker[1][starter])
         for i in range(1, random.randint(2,50)):
-            nextWord = crawlCorpusForNext(lastWord)
-            out += " " + lastWord.getStr()
+            out += nextWord.getStr() + " "
             lastWord = nextWord
-    except:
+            nextWord = crawlCorpusForNext(lastWord)
+    except Exception as e:
+        print(e)
         if len(multiWordStarts) > 2 and out == "":
             out = str(random.choice(list(multiWordStarts.keys())))
             return out
@@ -25,7 +26,7 @@ def getResponse(messageTOTAL):
             return out
         else:
             return out
-
+    assignToAuthor(messageTOTAL)
     return out
 
 def assignToAuthor(messageTOTAL):
@@ -36,7 +37,7 @@ def assignToAuthor(messageTOTAL):
 
 #processes the message into wordObjects
 def processMessage(message):
-    global totalWordTracker
+    global totalWordTracker, prevThreePrev, threePrev, prevTwoPrev, twoPrev, threMultiWord, prevThreMultiWord
     global lastTrackedWord
     global multiWordStarts
     listOfResponse = []
@@ -44,6 +45,10 @@ def processMessage(message):
     if len(message.split(" ")) > 1:
         #for every word in the list
         multiWordList = []
+        twoCounter = 2
+        twoList = []
+        threeCounter = 2
+        threeList = []
         for word in message.split(" "):
             totalWordTracker[0] += 1
             if word not in totalWordTracker[1]:
@@ -60,8 +65,54 @@ def processMessage(message):
             if lastTrackedWord in totalWordTracker and list.index(message.split(" "), word) == 0:
                 totalWordTracker[1][word].addToPrev(totalWordTracker[1][lastTrackedWord])
             multiWordList.append(totalWordTracker[1][word])
-        multiWord = stringObjects.multiWordObject(multiWordList, totalWordTracker[0])
-        multiWordStarts[message] = multiWord
+            if twoCounter > 0:
+                twoList.append(totalWordTracker[1][word])
+                twoCounter -= 1
+            else:
+                twoList.append(totalWordTracker[1][word])
+                twoCounter -= 1
+                prevTwoPrev = word
+                multiWord = stringObjects.multiWordObject(twoList, totalWordTracker[0])
+                multiWordStarts[message] = multiWord
+                totalWordTracker[1][multiWord] = multiWord
+                try:
+                    totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                try:
+                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][twoPrev])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                twoList = []
+                twoCounter = 1
+                twoPrev = prevTwoPrev
+            if threeCounter > 0:
+                threeList.append(totalWordTracker[1][word])
+                threeCounter -= 1
+            else:
+                threeList.append(totalWordTracker[1][word])
+                threeCounter -= 1
+                prevThreePrev = word
+                multiWord = stringObjects.multiWordObject(threeList, totalWordTracker[0])
+                multiWordStarts[message] = multiWord
+                totalWordTracker[1][multiWord] = multiWord
+                try:
+                    totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                try:
+                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][threePrev])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                try:
+                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][prevThreMultiWord])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                threeList = []
+                threeCounter = 2
+                threePrev = prevThreePrev
+                prevThreMultiWord = multiWord
+
 
 
 
@@ -73,13 +124,13 @@ def processMessage(message):
 
 def crawlCorpusForNext(lastWord):
     if len(lastWord.nextWordDict) == 0:
-        nextWord = max(zip(lastWord.prevWordDict.values(), lastWord.prevWordDict.keys()))[1]
+        nextWord = min(lastWord.prevWordDict, key=lastWord.prevWordDict.get)
     else:
         randNum = random.randint(0,100)
         if randNum > 70:
             nextWord = random.choice(list(lastWord.nextWordDict.keys()))
         else:
-            nextWord = max(lastWord.nextWordDict, key=lastWord.nextWordDict.get)
+            nextWord = min(lastWord.nextWordDict, key=lastWord.nextWordDict.get)
 
     return nextWord
 

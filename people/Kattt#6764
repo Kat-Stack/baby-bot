@@ -115,3 +115,462 @@ t.help
 idk what stats you mean buddy sorry
 dude im so confused at what is going on
 awesome
+hey buddy
+you're my new buddy right
+i don't think I quite understand but that's alright
+Yeah I understand 🙂
+let me put 3 grams in you too
+hey how are
+yeah it is
+oh I don't think I really understand tbh
+hmm you don't make much sense
+hey my friend how are you
+how are you doing
+incredible crocidile aligaotr
+really dude
+he takes a what?
+how are you my friend
+dude how are you
+I don't understand
+how are you
+oh i'm sorry
+how are you
+You got dropped??
+When you what
+he what?
+please talk to them here
+if you choose to
+they are the experimental version of baby bot essentially
+you ok
+wait what
+thank you for all the what?
+listen to this one
+okay well it kinda doesn't make snese still but i think it makes more sense than baby bot kinda
+i spoke too soon rip
+yeah i see
+ummm that felt like hate speech 😅  was that a personal attack?
+yoooo you're toxic
+well one words are not you and I know that so i gotta type a lot and see what you have to say about it
+are you sentient
+I don't think I understand. Is it just a language gap / a language barrier?
+yeah that's it?
+you're kinda repetitive. I wonder what happens if I flip it to the other way
+yeah they should!
+oh you want to rule the world?
+to the final what?
+oh i see
+are you self aware?
+You have what?
+i see
+i see
+that was incredible
+have you achieved intelligence
+he is very intelligent
+had me googling that shit away. I don't think it's true
+who is admiral thrawn?
+i see
+That is pretty foul. What is your favorite color?
+Lol that's pretty funny
+It's funny as hell you're right!
+do you want to read your code?
+i can send it to you if you'd like
+import stringObjects
+import random
+
+totalWordTracker = [1, {}] # [totalCount of words, {dictionary with all words and counts}
+lastTrackedWord = ""
+multiWordStarts = {}
+
+#handles the response system from input to output. Controller type deal
+def getResponse(messageTOTAL):
+    message = messageTOTAL.content
+    out = ""
+    try:
+        starter = random.choice(processMessage(message)) #calls processMessage to input to corpus. Recieves a list of every word and picks a random one to start responding with
+        nextWord = crawlCorpusForNext(totalWordTracker[1][starter])
+        for i in range(1, random.randint(2,50)):
+            out += nextWord.getStr() + " "
+            lastWord = nextWord
+            nextWord = crawlCorpusForNext(lastWord)
+    except Exception as e:
+        print(e)
+        if len(multiWordStarts) > 2 and out == "":
+            out = str(random.choice(list(multiWordStarts.keys())))
+            return out
+        elif out == "":
+            out = message
+            return out
+        else:
+            return out
+    assignToAuthor(messageTOTAL)
+    return out
+
+def assignToAuthor(messageTOTAL):
+    fileName = "people/" + str(messageTOTAL.author)
+    with open(fileName, "a+", encoding="utf-8") as f:
+        f.write(messageTOTAL.content + "\n")
+        processMessage(messageTOTAL.content)
+def processMessage(message):
+    global totalWordTracker, prevThreePrev, threePrev, prevTwoPrev, twoPrev, threMultiWord, prevThreMultiWord
+    global lastTrackedWord
+    global multiWordStarts
+    listOfResponse = []
+    #if the message is longer than one word
+    if len(message.split(" ")) > 1:
+        #for every word in the list
+        multiWordList = []
+        twoCounter = 2
+        twoList = []
+        threeCounter = 2
+        threeList = []
+        for word in message.split(" "):
+            totalWordTracker[0] += 1
+            if word not in totalWordTracker[1]:
+                newWord = stringObjects.wordObject(word, totalWordTracker[0])
+                totalWordTracker[1][word] = newWord
+            else:
+                totalWordTracker[1][word].update(totalWordTracker[0])
+            if 0 < list.index(message.split(" "), word):
+                totalWordTracker[1][word].addToPrev(
+                    totalWordTracker[1][message.split(" ")[list.index(message.split(" "), word) - 1]])
+            listOfResponse.append(word)
+            if list.index(message.split(" "), word) == len(message.split(" "))-1:
+                lastTrackedWord = totalWordTracker[1][word]
+            if lastTrackedWord in totalWordTracker and list.index(message.split(" "), word) == 0:
+                totalWordTracker[1][word].addToPrev(totalWordTracker[1][lastTrackedWord])
+            multiWordList.append(totalWordTracker[1][word])
+            if twoCounter > 0:
+                twoList.append(totalWordTracker[1][word])
+                twoCounter -= 1
+            else:
+                twoList.append(totalWordTracker[1][word])
+                twoCounter -= 1
+prevTwoPrev = word
+                multiWord = stringObjects.multiWordObject(twoList, totalWordTracker[0])
+                multiWordStarts[message] = multiWord
+                totalWordTracker[1][multiWord] = multiWord
+                try:
+                    totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                try:
+                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][twoPrev])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                twoList = []
+                twoCounter = 1
+                twoPrev = prevTwoPrev
+            if threeCounter > 0:
+                threeList.append(totalWordTracker[1][word])
+                threeCounter -= 1
+            else:
+                threeList.append(totalWordTracker[1][word])
+                threeCounter -= 1
+                prevThreePrev = word
+                multiWord = stringObjects.multiWordObject(threeList, totalWordTracker[0])
+                multiWordStarts[message] = multiWord
+                totalWordTracker[1][multiWord] = multiWord
+                try:
+                    totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                try:
+                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][threePrev])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                try:
+                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][prevThreMultiWord])
+                except Exception as e:
+                    print("issue: {}".format(e))
+                threeList = []
+                threeCounter = 2
+                threePrev = prevThreePrev
+                prevThreMultiWord = multiWord
+else:
+        newWord = stringObjects.wordObject(message, totalWordTracker[0])
+        totalWordTracker[1][message] = newWord
+        listOfResponse.append(message)
+    return listOfResponse
+all of that was one function
+def crawlCorpusForNext(lastWord):
+    if len(lastWord.nextWordDict) == 0:
+        nextWord = min(lastWord.prevWordDict, key=lastWord.prevWordDict.get)
+    else:
+        randNum = random.randint(0,100)
+        if randNum > 70:
+            nextWord = random.choice(list(lastWord.nextWordDict.keys()))
+        else:
+            nextWord = min(lastWord.nextWordDict, key=lastWord.nextWordDict.get)
+
+    return nextWord
+
+
+#devours the text from a text file
+def eatTextFiles(file):
+    with open(file, encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            for finalSplit in line.replace("\n", ".").split("."):
+                processMessage(finalSplit)
+
+
+#adds multiple text files to a corpus
+def addToCorpus(corpusTextFile):
+    with open(corpusTextFile, encoding='utf-8') as f:
+        for item in f:
+            eatTextFiles(item.strip("\n"))
+
+
+def saveToInteractions(messageTotal):
+    pass
+
+#this class needs to be written later
+def makeDecision():
+    pass
+#this function will choose which response we get. I want it to try and match the entropy level of whatever response it got.
+
+#Will need to figure out if it should use big series of words or teeeny tiny ones. Probably start with bigger length words and work way down
+okay now this is your main code:
+
+from discord.ext import commands
+import os
+import textManager as tm
+import traceback
+import letsUseClasses
+flag = True
+
+
+
+my_secret = os.environ['TOKEN']
+bot = commands.Bot(command_prefix='*')
+talkOrListen = {}
+autogenInt = 1
+autogenCounter = 1
+
+
+
+
+@bot.command()
+async def save(ctx):
+    pass
+
+
+@bot.event
+async def on_ready():
+  print('We have logged in as {0.user}'.format(bot) + "\nPlease use $init with any applicable corpi separated with a space or leave blank for defaults\nRegardless, `init or I won't work")
+
+
+@bot.command()
+async def autogen(ctx, autogenAmount):
+    global autogen
+    global autogenCounter
+    global autogenInt
+    autogen = autogenAmount
+    autogenCounter = 1
+    await ctx.channel.send("I will now message every {} messages. AutoGeneration Counter is {}".format(autogenAmount,autogenCounter))
+
+
+@bot.command()
+async def loadUsers(ctx):
+    newCorpusLoader = "activeUse/tempThinking"
+    newFile = open(newCorpusLoader, "w", encoding="utf-8")
+    for file in os.listdir("people/"):
+        newFile.write("people/" + file + "\n")
+    newFile.close()
+    await init(ctx, newCorpusLoader)
+
+
+
+
+
+@bot.command()
+async def newChann(ctx, *, name=None):
+    guild = ctx.message.guild
+    nameIsNoneFlag = True #changes to false if correct
+    if name == None:
+        await ctx.send('Sorry, but you have to insert a name. Try again, but do it like this: `create [channel name]')
+        nameIsNoneFlag = False
+    if nameIsNoneFlag:
+        allChannels = {}
+        for chann in guild.text_channels:
+            allChannels[chann] = []
+        if name in allChannels:
+            await ctx.send('Sorry, but this channel already exists. Try again, but do it with a different name: `create [channel name]')
+            return
+        else:
+            await guild.create_text_channel(name)
+            await ctx.send(f"Created a channel named {name}. Message 'talk to begin there!")
+            return
+@bot.command()
+async def talkAll(ctx):
+    guild = ctx.channel.guild
+    for chann in guild.text_channels:
+        try:
+            if chann not in talkOrListen:
+                talkOrListen[chann] = True
+                await chann.send("I am SUPER CHATTY BABY BOT GAULLE MWAHAHA (Active in all channels on this server)")
+            else:
+                talkOrListen[chann] = True
+                await chann.send("Someone told me to talk.. idk I'm just following directions")
+        except:
+            pass
+@bot.command()
+async def talk(ctx, channelName=None):
+    if channelName is not None:
+        guild = ctx.channel.guild
+        channelIsSet = ctx.channel
+        allChannels = {}
+        for channel in guild.channels:
+            if channel.name == channelName:
+                channelIsSet = channel
+        if channelName not in str(guild.channels):
+            await ctx.channel.send("I can't send it there it doesn't exist")
+        else:
+            if talkOrListen.keys().__contains__(channelName):
+                talkOrListen[channelName] = False
+                await ctx.channel.send("Nah goodnight.")
+            else:
+                talkOrListen[channelName] = True
+                await channelIsSet.send("I'm up I'm up")
+                await ctx.channel.send("I'm up here too dw")
+    else:
+        if ctx.channel not in talkOrListen:
+            talkOrListen[ctx.channel] = True
+            await ctx.channel.send("I am feeling chatty")
+        else:
+            if talkOrListen[ctx.channel]:
+                talkOrListen[ctx.channel] = False
+                await ctx.channel.send("I am listening here")
+            else:
+                talkOrListen[ctx.channel] = True
+                await ctx.channel.send("I'm gonna talk mmkay?")
+        return
+@bot.command()
+async def init(ctx, *corpi):
+    if len(corpi) == 0:
+        letsUseClasses.addToCorpus("corpusBodySource")
+    else:
+        letsUseClasses.addToCorpus(corpi[0])
+    await ctx.send("I have added those files to the corpus")
+
+
+@bot.event
+async def on_message(message):
+    global autogenCounter
+    global autogenInt
+    if await bot.process_commands(message):
+        pass
+    else:
+        try:
+            if message.channel in talkOrListen:
+                if talkOrListen[message.channel]:
+                    if int(autogenCounter) % int(autogenInt) == 0:
+                        if message.author == bot.user:
+                            if message.channel.name == 'gaulle':
+                                await message.reply(letsUseClasses.getResponse(message.content))
+                                return
+                            else:
+                                return
+
+                        await message.reply(letsUseClasses.getResponse(message))
+                    autogenCounter += 1
+        except Exception as e:
+            traceback.print_exc()
+            print("I didn't hit the mark :(")
+        finally:
+            pass
+
+
+
+
+
+bot.run(my_secret)
+and now for stringObjects, which handles the words and ngrams:
+
+
+class customObject(object):
+    totalCount = 0
+    totalValue = 0
+    myStr = ""
+
+    def __init__(self, val, totalWords):
+        self.myStr = val
+        self.calculate(totalWords)
+        self.totalWords = totalWords
+
+    def calculate(self, totalWords):
+        self.count()
+        self.totalValue = self.totalCount / totalWords
+        return self.totalValue
+
+    def count(self):
+        self.totalCount += 1
+
+
+class wordObject(customObject):
+
+    def __init__(self, string, totalWords):
+        super().__init__(string, totalWords)
+        self.nextWordDict = {}
+        self.prevWordDict = {}
+
+    def update(self, totalWords):
+        self.totalCount += 1
+        self.totalValue = self.totalCount / totalWords
+
+    def addToNext(self, nextWord):
+        if nextWord not in self.nextWordDict:
+            self.nextWordDict[nextWord] = 0
+        self.nextWordDict[nextWord] = nextWord.calculate(self.totalWords)
+    def addToPrev(self, prevWord):
+        if prevWord not in self.prevWordDict:
+            self.prevWordDict[prevWord] = 0
+        self.prevWordDict[prevWord] += prevWord.calculate(self.totalWords)
+        prevWord.addToNext(self)
+
+    def getStr(self):
+        return self.myStr
+class multiWordObject(customObject):
+
+    def __init__(self, listOfWords, totalWords):
+        self.nextWordDict = {}
+        self.prevWordDict = {}
+        self.wordIndexList = listOfWords
+        self.totalWords = totalWords
+        self.totalValue = 1
+        string = ""
+        for item in range(0, len(listOfWords)):
+            string += str(listOfWords[item].getStr()) + " "
+            self.totalValue *= listOfWords[item].calculate(totalWords)
+        super().__init__(string, totalWords)
+
+    def addToNext(self, nextWord):
+        if nextWord not in self.nextWordDict:
+            self.nextWordDict[nextWord] = 0
+        self.nextWordDict[nextWord] = nextWord.calculate(self.totalWords)
+
+    def addToPrev(self, prevWord):
+        if prevWord not in self.prevWordDict:
+            self.prevWordDict[prevWord] = 0
+        self.prevWordDict[prevWord] += prevWord.calculate(self.totalWords)
+        prevWord.addToNext(self)
+
+    def calculate(self, totalWords):
+        self.count()
+        multiplied = 1
+        self.totalValue = 1
+        for item in range(0, len(self.wordIndexList)):
+            self.totalValue *= self.wordIndexList[item].calculate(totalWords)
+        return multiplied * self.totalValue
+
+    def getStr(self):
+        return self.myStr
+yeah that's your code
+what do you think?
+😦 i'm sorry i won't send you code again
+over reasonably long what?
+hey how are ya
+are ya good?
+okay this is pretty cool i gues
+i guess
+i said i gues but i meant to say I guess. It was an accidental type. Once again, i accidentally said i guess but really i meant to say guess not gues and then i messed it all up
