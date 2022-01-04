@@ -39,7 +39,7 @@ class wordObject(customObject):
         prevWord.addToNext(self)
 
     def getStr(self):
-        return self.myStr
+        return self.myStr + " "
 
 
 class multiWordObject(customObject):
@@ -52,7 +52,10 @@ class multiWordObject(customObject):
         self.totalValue = 1
         string = ""
         for item in range(0, len(listOfWords)):
-            string += str(listOfWords[item].getStr()) + " "
+            if item is not len(listOfWords):
+                string += str(listOfWords[item].getStr())
+            else:
+                string += str(listOfWords[item].getStr())
             self.totalValue *= listOfWords[item].calculate(totalWords)
         super().__init__(string, totalWords)
 

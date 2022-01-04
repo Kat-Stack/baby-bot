@@ -37,15 +37,16 @@ def assignToAuthor(messageTOTAL):
 
 #processes the message into wordObjects
 def processMessage(message):
-    global totalWordTracker, prevThreePrev, threePrev, prevTwoPrev, twoPrev, threMultiWord, prevThreMultiWord
+    global totalWordTracker, prevThreePrev, threePrev, prevTwoPrev, twoPrev, prevThreMultiWord, threeMultiWord, multiWord
     global lastTrackedWord
     global multiWordStarts
+    message = ' '.join(message.split())
     listOfResponse = []
     #if the message is longer than one word
     if len(message.split(" ")) > 1:
         #for every word in the list
         multiWordList = []
-        twoCounter = 2
+        twoCounter = 1
         twoList = []
         threeCounter = 2
         threeList = []
@@ -66,6 +67,18 @@ def processMessage(message):
                 totalWordTracker[1][word].addToPrev(totalWordTracker[1][lastTrackedWord])
             multiWordList.append(totalWordTracker[1][word])
             if twoCounter > 0:
+                try:
+                    try:
+                        totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
+                    except Exception as e:
+                        print("issue: {}".format(e))
+                    try:
+                        totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][twoPrev])
+                    except Exception as e:
+                        print("issue: {}".format(e))
+                    twoPrev = prevTwoPrev
+                except Exception as e:
+                    print("error in letsUseClasses 2gram connections {}".format(e))
                 twoList.append(totalWordTracker[1][word])
                 twoCounter -= 1
             else:
@@ -75,17 +88,28 @@ def processMessage(message):
                 multiWord = stringObjects.multiWordObject(twoList, totalWordTracker[0])
                 multiWordStarts[message] = multiWord
                 totalWordTracker[1][multiWord] = multiWord
-                try:
-                    totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
-                except Exception as e:
-                    print("issue: {}".format(e))
-                try:
-                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][twoPrev])
-                except Exception as e:
-                    print("issue: {}".format(e))
+
                 twoList = []
                 twoCounter = 1
-                twoPrev = prevTwoPrev
+
+            if threeCounter == 2:
+                try:
+                    try:
+                        totalWordTracker[1][word].addToPrev(totalWordTracker[1][threeMultiWord])
+                    except Exception as e:
+                        print("issue: {}".format(e))
+                    try:
+                        totalWordTracker[1][threeMultiWord].addToPrev(totalWordTracker[1][threePrev])
+                    except Exception as e:
+                        print("issue: {}".format(e))
+                    try:
+                        totalWordTracker[1][threeMultiWord].addToPrev(totalWordTracker[1][prevThreMultiWord])
+                    except Exception as e:
+                        print("issue: {}".format(e))
+                    threePrev = prevThreePrev
+                    prevThreMultiWord = threeMultiWord
+                except Exception as e:
+                    print("error in letsUseClasses 3grams connections{}".format(e))
             if threeCounter > 0:
                 threeList.append(totalWordTracker[1][word])
                 threeCounter -= 1
@@ -93,25 +117,13 @@ def processMessage(message):
                 threeList.append(totalWordTracker[1][word])
                 threeCounter -= 1
                 prevThreePrev = word
-                multiWord = stringObjects.multiWordObject(threeList, totalWordTracker[0])
-                multiWordStarts[message] = multiWord
-                totalWordTracker[1][multiWord] = multiWord
-                try:
-                    totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
-                except Exception as e:
-                    print("issue: {}".format(e))
-                try:
-                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][threePrev])
-                except Exception as e:
-                    print("issue: {}".format(e))
-                try:
-                    totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][prevThreMultiWord])
-                except Exception as e:
-                    print("issue: {}".format(e))
+                threeMultiWord = stringObjects.multiWordObject(threeList, totalWordTracker[0])
+                multiWordStarts[message] = threeMultiWord
+                totalWordTracker[1][threeMultiWord] = threeMultiWord
+
+
                 threeList = []
                 threeCounter = 2
-                threePrev = prevThreePrev
-                prevThreMultiWord = multiWord
 
 
 

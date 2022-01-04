@@ -8,7 +8,7 @@ flag = True
 
 
 my_secret = os.environ['TOKEN']
-bot = commands.Bot(command_prefix='*')
+bot = commands.Bot(os.environ['PREFIX'])
 talkOrListen = {}
 autogenInt = 1
 autogenCounter = 1
