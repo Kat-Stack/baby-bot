@@ -1,18 +1,21 @@
 import stringObjects
 import random
+import re
 
-totalWordTracker = [1, {}] # [totalCount of words, {dictionary with all words and counts}
+totalWordTracker = [1, {}]  # [totalCount of words, {dictionary with all words and counts}
 lastTrackedWord = ""
 multiWordStarts = {}
 
-#handles the response system from input to output. Controller type deal
+
+# handles the response system from input to output. Controller type deal
 def getResponse(messageTOTAL):
     message = messageTOTAL.content
     out = ""
     try:
-        starter = random.choice(processMessage(message)) #calls processMessage to input to corpus. Recieves a list of every word and picks a random one to start responding with
-        nextWord = crawlCorpusForNext(totalWordTracker[1][starter])
-        for i in range(1, random.randint(2,50)):
+        starter = processMessage(
+            message)  # calls processMessage to input to corpus. Recieves a list of every word and picks a random one to start responding with
+        nextWord = crawlCorpusForNext(totalWordTracker[1][starter.getStr()])
+        for i in range(1, random.randint(2, 50)):
             out += nextWord.getStr() + " "
             lastWord = nextWord
             nextWord = crawlCorpusForNext(lastWord)
@@ -29,27 +32,34 @@ def getResponse(messageTOTAL):
     assignToAuthor(messageTOTAL)
     return out
 
+
 def assignToAuthor(messageTOTAL):
     fileName = "people/" + str(messageTOTAL.author)
     with open(fileName, "a+", encoding="utf-8") as f:
         f.write(messageTOTAL.content + "\n")
         processMessage(messageTOTAL.content)
 
-#processes the message into wordObjects
+
+# processes the message into wordObjects
 def processMessage(message):
-    global totalWordTracker, prevThreePrev, threePrev, prevTwoPrev, twoPrev, prevThreMultiWord, threeMultiWord, multiWord
-    global lastTrackedWord
-    global multiWordStarts
+    global totalWordTracker, prevThreePrev, threePrev, prevTwoPrev, twoPrev, prevThreMultiWord, threeMultiWord, multiWord, newWord
+    global lastTrackedWord, listOfTwoWordMultiwords, listOfThreeWordMultiwords
+    global multiWordStarts, lastWord
     message = ' '.join(message.split())
     listOfResponse = []
-    #if the message is longer than one word
+    # if the message is longer than one word
     if len(message.split(" ")) > 1:
-        #for every word in the list
+        # for every word in the list
         multiWordList = []
         twoCounter = 1
         twoList = []
         threeCounter = 2
         threeList = []
+
+        ngramPhraseArray = [[], [], [], [], []]
+
+        listOfTwoWordMultiwords = []
+        listOfThreeWordMultiwords = []
         for word in message.split(" "):
             totalWordTracker[0] += 1
             if word not in totalWordTracker[1]:
@@ -61,116 +71,119 @@ def processMessage(message):
                 totalWordTracker[1][word].addToPrev(
                     totalWordTracker[1][message.split(" ")[list.index(message.split(" "), word) - 1]])
             listOfResponse.append(word)
-            if list.index(message.split(" "), word) == len(message.split(" "))-1:
+            if list.index(message.split(" "), word) == len(message.split(" ")) - 1:
                 lastTrackedWord = totalWordTracker[1][word]
             if lastTrackedWord in totalWordTracker and list.index(message.split(" "), word) == 0:
                 totalWordTracker[1][word].addToPrev(totalWordTracker[1][lastTrackedWord])
             multiWordList.append(totalWordTracker[1][word])
-            if twoCounter > 0:
-                try:
-                    try:
-                        totalWordTracker[1][word].addToPrev(totalWordTracker[1][multiWord])
-                    except Exception as e:
-                        print("issue: {}".format(e))
-                    try:
-                        totalWordTracker[1][multiWord].addToPrev(totalWordTracker[1][twoPrev])
-                    except Exception as e:
-                        print("issue: {}".format(e))
-                    twoPrev = prevTwoPrev
-                except Exception as e:
-                    print("error in letsUseClasses 2gram connections {}".format(e))
-                twoList.append(totalWordTracker[1][word])
-                twoCounter -= 1
-            else:
-                twoList.append(totalWordTracker[1][word])
-                twoCounter -= 1
-                prevTwoPrev = word
-                multiWord = stringObjects.multiWordObject(twoList, totalWordTracker[0])
-                multiWordStarts[message] = multiWord
-                totalWordTracker[1][multiWord] = multiWord
-
-                twoList = []
-                twoCounter = 1
-
-            if threeCounter == 2:
-                try:
-                    try:
-                        totalWordTracker[1][word].addToPrev(totalWordTracker[1][threeMultiWord])
-                    except Exception as e:
-                        print("issue: {}".format(e))
-                    try:
-                        totalWordTracker[1][threeMultiWord].addToPrev(totalWordTracker[1][threePrev])
-                    except Exception as e:
-                        print("issue: {}".format(e))
-                    try:
-                        totalWordTracker[1][threeMultiWord].addToPrev(totalWordTracker[1][prevThreMultiWord])
-                    except Exception as e:
-                        print("issue: {}".format(e))
-                    threePrev = prevThreePrev
-                    prevThreMultiWord = threeMultiWord
-                except Exception as e:
-                    print("error in letsUseClasses 3grams connections{}".format(e))
-            if threeCounter > 0:
-                threeList.append(totalWordTracker[1][word])
-                threeCounter -= 1
-            else:
-                threeList.append(totalWordTracker[1][word])
-                threeCounter -= 1
-                prevThreePrev = word
-                threeMultiWord = stringObjects.multiWordObject(threeList, totalWordTracker[0])
-                multiWordStarts[message] = threeMultiWord
-                totalWordTracker[1][threeMultiWord] = threeMultiWord
-
-
-                threeList = []
-                threeCounter = 2
-
-
-
-
+            ngramPhraseArray[0].append(totalWordTracker[1][word])
+            lastWord = newWord
+        for item in datifyIndexer(expandIndexer(ngramPhraseArray)):
+            for piece in item:
+                if piece.getStr() not in totalWordTracker[1]:
+                    totalWordTracker[1][piece.getStr()] = piece
+                totalWordTracker[1][piece.getStr()].update(totalWordTracker[0], piece.getCount())
     else:
         newWord = stringObjects.wordObject(message, totalWordTracker[0])
         totalWordTracker[1][message] = newWord
         listOfResponse.append(message)
-    return listOfResponse
+    return lastWord
 
-#crawls corpus and grabs next best word / set of words
+
+# crawls corpus and grabs next best word / set of words
 def crawlCorpusForNext(lastWord):
     if len(lastWord.nextWordDict) == 0:
         nextWord = min(lastWord.prevWordDict, key=lastWord.prevWordDict.get)
     else:
-        randNum = random.randint(0,100)
+        randNum = random.randint(0, 100)
         if randNum > 70:
             nextWord = random.choice(list(lastWord.nextWordDict.keys()))
         else:
-            #use min to get the best result
+            # use min to get the best result
             nextWord = min(lastWord.nextWordDict, key=lastWord.nextWordDict.get)
 
     return nextWord
 
 
-#devours the text from a text file
+# devours the text from a text file
 def eatTextFiles(file):
     with open(file, encoding='utf-8') as f:
         lines = f.readlines()
         for line in lines:
-            for finalSplit in line.replace("\n", ".").split("."):
-                processMessage(finalSplit)
+            processMessage(line.replace("\n", "."))
+  #          for finalSplit in line.replace("\n", "."):
+   #             processMessage(finalSplit)
 
 
-#adds multiple text files to a corpus
+# adds multiple text files to a corpus
 def addToCorpus(corpusTextFile):
     with open(corpusTextFile, encoding='utf-8') as f:
         for item in f:
             eatTextFiles(item.strip("\n"))
 
+#takes one row of single words and expands to 5grams
+def expandIndexer(wholeIndexWithTheFirstRowFilled):
+    global totalWordTracker
+    doubtCount = 0
+    for item in wholeIndexWithTheFirstRowFilled[0]:
+        if len(wholeIndexWithTheFirstRowFilled[0]) < 5:
+            for counter in range(1,len(wholeIndexWithTheFirstRowFilled[0])):
+                if wholeIndexWithTheFirstRowFilled[0].index(item) - counter >= 0:
+                    try:
+                        multiWord = stringObjects.multiWordObject(
+                            [wholeIndexWithTheFirstRowFilled[-1+counter][wholeIndexWithTheFirstRowFilled[0].index(item)-counter], item], totalWordTracker[0])
+                        totalWordTracker[1][multiWord.getStr()] = multiWord
+                        if counter < 5:
+                            wholeIndexWithTheFirstRowFilled[counter-1].append(multiWord)
+                    except Exception as e:
+                        print("error in expander {}".format(e) + " " + item.getStr() + " " + str(counter))
+        else:
+            for counter in range(1,5):
+                if wholeIndexWithTheFirstRowFilled[0].index(item) - counter >= 0:
+                    try:
+                        multiWord = stringObjects.multiWordObject(
+                            [wholeIndexWithTheFirstRowFilled[-1+counter][wholeIndexWithTheFirstRowFilled[0].index(item)-counter], item], totalWordTracker[0])
+                        totalWordTracker[1][multiWord.getStr()] = multiWord
+                        if counter < 5:
+                            wholeIndexWithTheFirstRowFilled[counter].append(multiWord)
+                    except Exception as e:
+                        print("error in expander {}".format(e) + " " + item.getStr() + " " + str(counter))
+    return wholeIndexWithTheFirstRowFilled
+
+
+#loadValuesOfIndex based on position
+def datifyIndexer(wholeIndexFullyFilled):
+    global totalWordTracker
+    if len(wholeIndexFullyFilled[0]) < 5:
+        for counter in range(0,len(wholeIndexFullyFilled[0])):
+            for item in wholeIndexFullyFilled[counter]:
+                if wholeIndexFullyFilled[counter].index(item) > counter:
+                    try:
+                        wholeIndexFullyFilled[counter][wholeIndexFullyFilled[counter].index(item) - counter-1].addToPrev(item)
+                    except Exception as e:
+                        print("error in da datify {}".format(e) + " " + item.getStr() + " " + str(counter))
+
+
+    else:
+        for counter in range(0,5):
+            for item in wholeIndexFullyFilled[counter]:
+                if wholeIndexFullyFilled[counter].index(item) > counter:
+                    try:
+                        wholeIndexFullyFilled[counter][wholeIndexFullyFilled[counter].index(item)-counter-1].addToPrev(item)
+                    except Exception as e:
+                        print("error in da datify {}".format(e)+" "+ item.getStr() + " " + str(counter))
+
+    return wholeIndexFullyFilled
+
+
 
 def saveToInteractions(messageTotal):
     pass
 
-#this class needs to be written later
+
+# this class needs to be written later
 def makeDecision():
     pass
-#this function will choose which response we get. I want it to try and match the entropy level of whatever response it got.
+# this function will choose which response we get. I want it to try and match the entropy level of whatever response it got.
 
-#Will need to figure out if it should use big series of words or teeeny tiny ones. Probably start with bigger length words and work way down
+# Will need to figure out if it should use big series of words or teeeny tiny ones. Probably start with bigger length words and work way down

@@ -1,0 +1,3 @@
+newCorpus/got.txt
+newCorpus/avatar.txt
+newCorpus/redditCorpus.txt
