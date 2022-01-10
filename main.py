@@ -1,4 +1,6 @@
 from discord.ext import commands
+from discord.utils import get
+import discord
 import os
 import textManager as tm
 import traceback
@@ -28,16 +30,18 @@ async def on_ready():
 
 @bot.command()
 async def autogen(ctx, autogenAmount):
+    print("autogen was used on {} {}".format(ctx.guild, ctx.channel))
     global autogen
     global autogenCounter
     global autogenInt
-    autogen = autogenAmount
+    autogenInt = autogenAmount
     autogenCounter = 1
     await ctx.channel.send("I will now message every {} messages. AutoGeneration Counter is {}".format(autogenAmount,autogenCounter))
 
 
 @bot.command()
 async def loadUsers(ctx):
+    print("loadUsers was used on {} {}".format(ctx.guild, ctx.channel))
     newCorpusLoader = "activeUse/tempThinking"
     newFile = open(newCorpusLoader, "w", encoding="utf-8")
     for file in os.listdir("people/"):
@@ -47,10 +51,18 @@ async def loadUsers(ctx):
 
 
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    if reaction.message.content.startswith("Created a channel named"):
+        myName = reaction.message.content[24:reaction.message.content.find(".")]
+        role = get(user.guild.roles, name=myName)
+        await user.add_roles(role)
+
 
 
 @bot.command()
 async def newChann(ctx, *, name=None):
+    print("NewChann was used on {} {}".format(ctx.guild, ctx.channel))
     guild = ctx.message.guild
     nameIsNoneFlag = True #changes to false if correct
     if name == None:
@@ -64,15 +76,33 @@ async def newChann(ctx, *, name=None):
             await ctx.send('Sorry, but this channel already exists. Try again, but do it with a different name: `create [channel name]')
             return
         else:
-            await guild.create_text_channel(name)
-            await ctx.send(f"Created a channel named {name}. Message 'talk to begin there!")
+            newName = ""
+            for item in name.split(" "):
+                if len(name.split(" ")) == name.split(" ").index(item) + 1:
+                    newName += item
+                else:
+                    newName += item + "-"
+            await guild.create_role(name=newName)
+            member = ctx.message.author
+            role = get(member.guild.roles, name=newName)
+            await role.edit(position=1)
+            overwrites = {
+                guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                guild.me: discord.PermissionOverwrite(read_messages=True),
+                role: discord.PermissionOverwrite(read_messages=True)
+            }
+            await member.add_roles(role)
+            channel = await guild.create_text_channel(newName, overwrites=overwrites)
+            await ctx.send(f"Created a channel named {channel.name}. Message 'talk to begin there!")
             return
+
 
 
 
 
 @bot.command()
 async def talkAll(ctx):
+    print("TalkAll was used on {} {}".format(ctx.guild, ctx.channel))
     guild = ctx.channel.guild
     for chann in guild.text_channels:
         try:
@@ -88,6 +118,7 @@ async def talkAll(ctx):
 
 @bot.command()
 async def talk(ctx, channelName=None):
+    print("Talk was used on {} {}".format(ctx.guild, ctx.channel))
     if channelName is not None:
         guild = ctx.channel.guild
         channelIsSet = ctx.channel
@@ -122,6 +153,7 @@ async def talk(ctx, channelName=None):
 
 @bot.command()
 async def init(ctx, *corpi):
+    print("Init was used on {} {}".format(ctx.guild, ctx.channel))
     if len(corpi) == 0:
         letsUseClasses.addToCorpus("corpusBodySource")
     else:
@@ -146,16 +178,23 @@ async def on_message(message):
                                 return
                             else:
                                 return
-
-                        await message.reply(letsUseClasses.getResponse(message))
+                        messageString = await swimThroughMessages(message)
+                        await message.reply(letsUseClasses.getResponse(message, messageString))
                     autogenCounter += 1
         except Exception as e:
-            traceback.print_exc()
+            traceback.print_exc(e)
             print("I didn't hit the mark :(")
         finally:
             pass
 
 
+async def swimThroughMessages(messageTOTAL):
+    string = ""
+    if messageTOTAL.reference is not None:
+        msg = await messageTOTAL.channel.fetch_message(messageTOTAL.reference.message_id)
+        string += await swimThroughMessages(msg)
+    string += messageTOTAL.content + " "
+    return string
 
 
 
