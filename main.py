@@ -2,6 +2,10 @@ from discord.ext import commands
 from discord.utils import get
 import discord
 import os
+import imgonnafigureouttextblob
+
+import imgonnafigureouttextblob
+import kovifyKayar
 import textManager as tm
 import traceback
 import letsUseClasses
@@ -14,6 +18,7 @@ bot = commands.Bot(os.environ['PREFIX'])
 talkOrListen = {}
 autogenInt = 1
 autogenCounter = 1
+big_bot = kovifyKayar.kovify_kr(4,"brain/")
 
 
 
@@ -49,7 +54,25 @@ async def loadUsers(ctx):
     newFile.close()
     await init(ctx, newCorpusLoader)
 
+@bot.command()
+async def loadChannels(ctx):
+    print("loadUsers was used on {} {}".format(ctx.guild, ctx.channel))
+    newCorpusLoader = "activeUse/tempThinking"
+    newFile = open(newCorpusLoader, "w", encoding="utf-8")
+    for file in os.listdir("channels/"):
+        newFile.write("channels/" + file + "\n")
+    newFile.close()
+    await init(ctx, newCorpusLoader)
 
+@bot.command()
+async def loadServers(ctx):
+    print("loadUsers was used on {} {}".format(ctx.guild, ctx.channel))
+    newCorpusLoader = "activeUse/tempThinking"
+    newFile = open(newCorpusLoader, "w", encoding="utf-8")
+    for file in os.listdir("server/"):
+        newFile.write("server/" + file + "\n")
+    newFile.close()
+    await init(ctx, newCorpusLoader)
 
 @bot.event
 async def on_reaction_add(reaction, user):
@@ -155,10 +178,19 @@ async def talk(ctx, channelName=None):
 async def init(ctx, *corpi):
     print("Init was used on {} {}".format(ctx.guild, ctx.channel))
     if len(corpi) == 0:
-        letsUseClasses.addToCorpus("corpusBodySource")
+        big_bot.addToCorpus("corpusBodySource")
     else:
-        letsUseClasses.addToCorpus(corpi[0])
+        big_bot.addToCorpus(corpi[0])
     await ctx.send("I have added those files to the corpus")
+
+
+@bot.command()
+async def sb(ctx):
+    big_bot.save_whole_brain()
+
+@bot.command()
+async def lb(ctx):
+    big_bot.load_entire_brain()
 
 
 @bot.event
@@ -174,12 +206,11 @@ async def on_message(message):
                     if int(autogenCounter) % int(autogenInt) == 0:
                         if message.author == bot.user:
                             if message.channel.name == 'gaulle':
-                                await message.reply(letsUseClasses.getResponse(message.content))
+                                await message.reply(big_bot.get_response(message.content, ["discord convo", "self talk"]))
                                 return
                             else:
                                 return
-                        messageString = await swimThroughMessages(message)
-                        await message.reply(letsUseClasses.getResponse(message, messageString))
+                        await message.reply(big_bot.get_response(message.content, ["discord convos", str(message.author), str(message.channel)]))
                     autogenCounter += 1
         except Exception as e:
             traceback.print_exc(e)

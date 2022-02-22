@@ -1,3 +1,5 @@
+from scipy.stats import entropy
+
 class customObject(object):
     totalCount = 0
     totalValue = 0
@@ -10,7 +12,7 @@ class customObject(object):
 
     def calculate(self, totalWords):
         self.count()
-        self.totalValue = self.totalCount / totalWords
+        self.totalValue = 1 - (self.totalCount / totalWords)
         return self.totalValue
 
     def count(self):
@@ -32,6 +34,12 @@ class wordObject(customObject):
         if nextWord not in self.nextWordDict:
             self.nextWordDict[nextWord] = 0
         self.nextWordDict[nextWord] = nextWord.calculate(self.totalWords)
+
+    def calculate(self, totalWords):
+        self.count()
+        self.totalValue = 1 - (self.totalCount / totalWords)
+        return self.totalValue
+
     def addToPrev(self, prevWord):
         if prevWord not in self.prevWordDict:
             self.prevWordDict[prevWord] = 0
@@ -74,9 +82,20 @@ class multiWordObject(customObject):
         self.count()
         multiplied = 1
         self.totalValue = 1
-        for item in range(0, len(self.wordIndexList)):
-            self.totalValue *= self.wordIndexList[item].calculate(totalWords)
-        return multiplied * self.totalValue
+        for item in range(0, len(self.wordIndexList)-1):
+            if item == 0:
+                self.totalValue *= self.wordIndexList[item].calculate(totalWords)
+            else:
+                try:
+                    self.totalValue *= self.wordIndexList[item - 1].nextWordDict[self.wordIndexList[item]]
+                except Exception as e:
+                    print("word: {} string objects issue at 85 not in nextWordDict for word {}".format(self.wordIndexList[item].getStr(), e))
+        return 1-(multiplied * self.totalValue)
 
     def getStr(self):
         return self.myStr
+
+class multimultiword(customObject):
+
+    def __init__(self, multiwords, totalWords):
+        pass

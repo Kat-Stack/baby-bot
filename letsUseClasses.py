@@ -1,17 +1,22 @@
 import stringObjects
 import random
+from scipy.stats import entropy
+from textblob import TextBlob
 
-totalWordTracker = [1, {}] # [totalCount of words, {dictionary with all words and counts}
+
+totalWordTracker = [1, {}]  # [totalCount of words, {dictionary with all words and counts}
 lastTrackedWord = ""
 multiWordStarts = {}
 
-#handles the response system from input to output. Controller type deal
+
+# handles the response system from input to output. Controller type deal
 def getResponse(messageTOTAL, message):
     out = ""
-    try:
-        starter = processMessage(message) #calls processMessage to input to corpus. Recieves a list of every word and picks a random one to start responding with
+    try: 
+        starter = processMessage(
+            message)  # calls processMessage to input to corpus. Recieves a list of every word and picks a random one to start responding with
         nextWord = crawlCorpusForNext(totalWordTracker[1][starter])
-        for i in range(1, random.randint(2,50)):
+        for i in range(1, random.randint(2, 50)):
             out += nextWord.getStr() + " "
             lastWord = nextWord
             nextWord = crawlCorpusForNext(lastWord)
@@ -34,41 +39,46 @@ def getResponse(messageTOTAL, message):
     fullSave(messageTOTAL, message)
     return out
 
-#save to channel files
+
+# save to channel files
 def assignToChannel(messageTOTAL, message):
     fileName = "channels/" + str(messageTOTAL.channel)
     saveToFile(message, fileName)
 
-#save to people files
+
+# save to people files
 def assignToAuthor(messageTOTAL, message):
     fileName = "people/" + str(messageTOTAL.author)
     saveToFile(message, fileName)
 
-#save to server files
+
+# save to server files
 def assignToServer(messageTOTAL, message):
     fileName = "server/" + str(messageTOTAL.guild)
     saveToFile(message, fileName)
 
-#saves to file
+
+# saves to file
 def saveToFile(string, fileNAME):
     with open(fileNAME, "a+", encoding="utf-8") as f:
         f.write(string + "\n")
         processMessage(string)
 
-#saves to all places
+
+# saves to all places
 def fullSave(messageTOTAL, message):
     assignToAuthor(messageTOTAL, message)
     assignToChannel(messageTOTAL, message)
     assignToServer(messageTOTAL, message)
 
 
-#processes the message into wordObjects
+# processes the message into wordObjects
 def processMessage(message):
     global totalWordTracker, prevThreePrev, threePrev, prevTwoPrev, twoPrev, prevThreMultiWord, threeMultiWord, multiWord, mostRecent, singleWord, lastWord
     global lastTrackedWord
     global multiWordStarts
     message = ' '.join(message.split())
-    #if the message is longer than one word
+    # if the message is longer than one word
     splitMessage = message.split((" "))
     if len(splitMessage) > 1:
         twoCounter = 1
@@ -83,10 +93,11 @@ def processMessage(message):
                 totalWordTracker[1][word] = newWord
             else:
                 totalWordTracker[1][word].update(totalWordTracker[0])
-            if 0 < list.index(splitMessage, word):
-                totalWordTracker[1][word].addToPrev(
-                    totalWordTracker[1][splitMessage[list.index(splitMessage, word) - 1]])
-            if list.index(splitMessage, word) == len(splitMessage)-1:
+            try:
+                totalWordTracker[1][word].addToPrev(totalWordTracker[1][splitMessage[list.index(splitMessage, word) - 1]])
+            except Exception as e:
+                print("totalwordTracker issues idk {}".format(e))
+            if list.index(splitMessage, word) == len(splitMessage) - 1:
                 lastTrackedWord = totalWordTracker[1][word]
             if lastTrackedWord in totalWordTracker and list.index(splitMessage, word) == 0:
                 totalWordTracker[1][word].addToPrev(totalWordTracker[1][lastTrackedWord])
@@ -151,10 +162,8 @@ def processMessage(message):
                 multiWordStarts[message] = threeMultiWord
                 totalWordTracker[1][threeMultiWord] = threeMultiWord
 
-
                 threeList = []
                 threeCounter = 2
-
 
     if mostRecent == 1:
         lastWord = singleWord
@@ -164,22 +173,23 @@ def processMessage(message):
         lastWord = threeMultiWord
     return lastWord
 
-#crawls corpus and grabs next best word / set of words
+
+# crawls corpus and grabs next best word / set of words
 def crawlCorpusForNext(lastWord):
     if len(lastWord.nextWordDict) == 0:
         nextWord = random.choice(list(lastWord.nextWordDict.keys()))
     else:
-        randNum = random.randint(0,100)
+        randNum = random.randint(0, 100)
         if randNum > 70:
             nextWord = random.choice(list(lastWord.nextWordDict.keys()))
         else:
-            #use min to get the best result
-            nextWord = min(lastWord.nextWordDict, key=lastWord.nextWordDict.get)
+            # use min to get the best result
+            nextWord = max(entropy(list(lastWord.nextWordDict)), key=lastWord.nextWordDict.get)
 
     return nextWord
 
 
-#devours the text from a text file
+# devours the text from a text file
 def eatTextFiles(file):
     with open(file, encoding='utf-8') as f:
         lines = f.readlines()
@@ -187,21 +197,21 @@ def eatTextFiles(file):
         counter = 0
         numOfBops = 0
         for line in lines:
-            for finalSplit in line.replace("\n", ".").split("."):
-                messageToLoad += finalSplit + "."
-            messageToLoad += " "
-            counter += 1
-            if counter > 1000:
-                processMessage(messageToLoad)
-                counter = 0
-                numOfBops += 1
-                messageToLoad = ""
-                print("we have bopped {} times on {}".format(numOfBops, str(file)))
+            if line != " ":
+                for finalSplit in line.replace("\n", ".").split("."):
+                    messageToLoad += finalSplit + "."
+                messageToLoad += " "
+                counter += 1
+                if counter > 3:
+                    processMessage(messageToLoad)
+                    counter = 0
+                    numOfBops += 1
+                    messageToLoad = ""
 
         processMessage(messageToLoad)
 
 
-#adds multiple text files to a corpus
+# adds multiple text files to a corpus
 def addToCorpus(corpusTextFile):
     with open(corpusTextFile, encoding='utf-8') as f:
         for item in f:
@@ -213,9 +223,10 @@ def addToCorpus(corpusTextFile):
 def saveToInteractions(messageTotal):
     pass
 
-#this class needs to be written later
+
+# this class needs to be written later
 def makeDecision():
     pass
-#this function will choose which response we get. I want it to try and match the entropy level of whatever response it got.
+# this function will choose which response we get. I want it to try and match the entropy level of whatever response it got.
 
-#Will need to figure out if it should use big series of words or teeeny tiny ones. Probably start with bigger length words and work way down
+# Will need to figure out if it should use big series of words or teeeny tiny ones. Probably start with bigger length words and work way down
