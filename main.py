@@ -210,11 +210,10 @@ async def on_message(message):
                                 return
                             else:
                                 return
-                        await message.reply(big_bot.get_response(message.content, ["discord convos", str(message.author), str(message.channel)]))
+                        await message.reply(big_bot.get_response(message.content, [str(message.author), str(message.channel)]))
                     autogenCounter += 1
         except Exception as e:
-            traceback.print_exc(e)
-            print("I didn't hit the mark :(")
+            print("I didn't hit the mark :( + {}".format(e))
         finally:
             pass
 

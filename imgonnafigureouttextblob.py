@@ -1,5 +1,5 @@
 import os
-os.environ['APPDATA'] = r"C:\Users\kakeb\AppData\Roaming"
+os.environ['APPDATA'] = r"C:\Users\Dartonian\AppData\Roaming\nltk_data"
 from textblob import TextBlob #ngrams, lang processing, etc. I would rec reading through docs for this
 import random
 import itertools #iterate through two dicts at same time

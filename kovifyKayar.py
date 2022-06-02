@@ -3,6 +3,7 @@ import markovify
 import os
 import json
 import random
+os.environ['APPDATA'] = r"C:\Users\Dartonian\AppData\Roaming\nltk_data"
 
 
 # Needed functions:
@@ -39,6 +40,7 @@ class kovify_kr:
         self.add_to_index(kovify_of_message, nouns_list)
         message_model = self.gen_new_brain(nouns_list)
         message_split = message.split(" ")
+        success = True
         try:
             attempt = message_model.make_sentence_with_start(message_split[-3])
         except KeyError:
@@ -50,6 +52,8 @@ class kovify_kr:
                 attempt = message_model.make_sentence()
                 if attempt is None:
                     attempt = "I tried to make a string but i failed. Maybe when i learn more words :pleading eyes:"
+            except Exception:
+                success = False
         except IndexError:
             try:
                 print("index failed on {}".format(message_split)[-1])
@@ -59,9 +63,16 @@ class kovify_kr:
                 attempt = message_model.make_sentence()
                 if attempt is None:
                     attempt = "I tried to make a string but i failed. Maybe when i learn more words :pleading eyes:"
+            except Exception:
+                success = False
         except ParamError:
             print("param failed again on {}".format(message_split)[-3])
             attempt = message_model.make_sentence()
+        except Exception:
+            success = False
+        finally:
+            if not success:
+                attempt = message_model.make_sentence()
         return attempt
 
 
@@ -109,7 +120,10 @@ class kovify_kr:
     #load entire brain index from folder filled with json file
     def load_entire_brain(self):
         for file in os.listdir(self.brain_directory):
-            self.load_single_kovify(self.brain_directory+file)
+            try:
+                self.load_single_kovify(self.brain_directory+file)
+            except Exception as e:
+                print("issue in " + str(file) + ": {}".format(e))
 
     # devours the text from a text file
     def eatTextFiles(self,file, fileString = None):

@@ -6,4 +6,6 @@ def scrape_folder(folder_path):
             f.write(folder_path+file_txt+"\n")
 
 
+scrape_folder("channels/")
 scrape_folder("people/")
+scrape_folder("server/")
